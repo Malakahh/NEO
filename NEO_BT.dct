@@ -480,6 +480,10 @@ brgh2_bit
 bsr
 bsubsampletype
 bsubsampletype
+btgetresponse
+btinit
+btreboot
+btsendcommand
 button
 byte2double
 bytetohex
@@ -1228,6 +1232,7 @@ imagefileasarray
 indf0
 indf1
 indf2
+initports
 int0
 int0_bit
 int0e
