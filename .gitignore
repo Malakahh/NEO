@@ -8,3 +8,5 @@
 *.cp
 *.mcl
 *.log
+*.sublime-project
+*.sublime-workspace
