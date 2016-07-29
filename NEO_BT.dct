@@ -480,10 +480,17 @@ brgh2_bit
 bsr
 bsubsampletype
 bsubsampletype
+btcmdmode
+btfactoryreset
 btgetresponse
 btinit
 btreboot
+btrelayresponse
 btsendcommand
+btuart1clearbuffer
+buffer
+bufferreaditr
+bufferwriteitr
 button
 byte2double
 bytetohex
@@ -1136,6 +1143,7 @@ gcen
 gcen_bit
 gcen_ssp1con2_bit
 get_fosc_khz
+getstoredbaud
 gie
 gie_bit
 gie_gieh
@@ -1281,6 +1289,7 @@ intedg1
 intedg1_bit
 intedg2
 intedg2_bit
+interrupt
 intsrc
 intsrc_bit
 inttohex
@@ -2269,6 +2278,7 @@ setfov32
 setfun32
 setiov3224
 setjmp
+setstoredbaud
 shorttohex
 shorttostr
 sin
