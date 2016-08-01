@@ -1,10 +1,14 @@
 #include "bluetooth.h"
 
 
+char BTbuffer[BTBufferSize];
+char *BTbufferWriteItr = BTbuffer;
+char *BTbufferReadItr = BTbuffer;
+int time = 0;
 
-void interrupt(void)
+void BTInterruptHandle()
 {
-    if(RC1IF_bit == 1)
+	if(RC1IF_bit == 1)
     {
         //BTRelayResponse();
         if (UART1_Data_Ready() == 1)
@@ -20,9 +24,40 @@ void interrupt(void)
 	        	BTbufferReadItr = BTbuffer;
 	    }
     }
+    
+    if (INTCON.TMR0IF == 1)
+    {
+		LATB.RB2 = !LATB.RB2;
 
+		time++;
+	    INTCON.TMR0IF = 0;
 
+		if (time == UNDIRECTED_ADVERTISEMENT_TIME)
+		{
+			UART2_Write(time);
+			T0CON.TMR0ON = 0;
+			LATB.RB3 = 1;
+			//StartDirectedAdvertisement();
+		}
+    } 
 }
+
+/*
+void FirmwareUpgradeSetup()
+{
+    BTSendCommand("+\r");           //Echo on
+    BTSendCommand("sf,2\r");        //Complete factory reset
+    BTSendCommand("r,1\r");
+    Delay_ms(250);
+    BTSendCommand("sr,10008000\r"); //Support MLDP, enable OTA (peripheral mode is enabled by default)
+    BTSendCommand("r,1\r");         //reboot to apply settings
+
+    //Wait for "CMD"
+    Delay_ms(2500);
+
+    BTSendCommand("a\r");           //Start advertising
+}
+*/
 
 unsigned long GetStoredBaud()
 {
@@ -49,13 +84,25 @@ void SetStoredBaud(unsigned long baud)
 	}
 }
 
+void StartDirectedAdvertisement()
+{
+	BTSendCommand("y\r");
+	BTSendCommand("sr,00060000\r"); // no pin code
+	BTReboot();
+	BTSendCommand("a\r");
+}
+
+void StartUndirectedAdvertisement()
+{
+	BTSendCommand("y\r");
+	BTSendCommand("sr,04060000\r"); //No_Direct_Advertisement & no pin code
+	BTReboot();
+	BTSendCommand("a\r");
+}
+
 void BTInit()
 {
-	//Declare variables
-	
-	//char msg[12];
 	unsigned long previousBaud;
-	int i;
 
 	//Initiate BT buffer
 	memset(BTbuffer, 0xFF, BTBufferSize);
@@ -88,67 +135,20 @@ void BTInit()
 
 	UART1_Init(BT_UART_Baud);
 	Delay_ms(100);
-	
-	//BTFactoryReset();
-
-	BTSendCommand("sr,04060000\r"); //No_Direct_Advertisement
 
 	BTSendCommand("s-,NEO\r");
-	
+
+	//BTFactoryReset();
+
 	BTReboot();
+	
+	StartUndirectedAdvertisement();
 
-	BTSendCommand("a\r");
-
-	BTSendCommand("gdf\r");
-
+	//BTSendCommand("gdf\r");
 	LATB.RB1 = 1;
-	//LATE.RE1 = 1;
-	//Delay_ms(50);
-	//LATE.RE1 = 1;
 
-
-	
-/*
-	BTGetResponse(buffer); //Returns 'CM'
-
-	//UART_Set_Active(&UART2_Read, &UART2_Write, &UART2_Data_Ready, &UART2_Tx_Idle);
-	for (i = 0; i < InitBufferSize; i++)
-	{
-		UART2_Write(buffer[i]);
-	}
-*/
-
-
-/*
-	if (BTGetResponse(buffer) > 0)
-	{
-		Delay_ms(1000);
-		LATE.RE1 = 0;
-		Delay_ms(200);
-		BTGetResponse(buffer2, InitBufferSize);
-
-		
-
-
-		//Change BT device name
-		BTSendCommand("s-,NEO\r");
-
-		//Get supported feature settings		
-		BTSendCommand("gr");
-		Delay_ms(100);
-		if (BTGetResponse(buffer, InitBufferSize) > 0)
-		{
-			LATD.RD0 = 1;
-			
-
-			//buffer[1] = 0x06;
-
-			//BTSendCommand(strcat(strcat("sr,", buffer), "\r"));
-		}
-	}
-
-	BTReboot();
-	*/
+	//Start timer
+	T0CON.TMR0ON = 1;
 }
 
 void BTSendCommand(char *cmd)

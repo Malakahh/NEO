@@ -480,17 +480,18 @@ brgh2_bit
 bsr
 bsubsampletype
 bsubsampletype
+btbuffer
+btbufferreaditr
+btbufferwriteitr
 btcmdmode
 btfactoryreset
 btgetresponse
 btinit
+btinterrupthandle
 btreboot
 btrelayresponse
 btsendcommand
 btuart1clearbuffer
-buffer
-bufferreaditr
-bufferwriteitr
 button
 byte2double
 bytetohex
@@ -1240,6 +1241,7 @@ imagefileasarray
 indf0
 indf1
 indf2
+initinterrupts
 initports
 int0
 int0_bit
@@ -2690,6 +2692,8 @@ sspov
 sspov_bit
 sspov_ssp1con1_bit
 sspstat
+startdirectedadvertisement
+startundirectedadvertisement
 status
 stkful
 stkful_bit
@@ -3134,6 +3138,7 @@ tft_write_text
 tft_write_text_return_pos
 tgen
 tgen_bit
+time
 time_datetoepoch
 time_epochtodate
 time_jd1970
