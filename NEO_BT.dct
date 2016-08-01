@@ -481,13 +481,15 @@ bsr
 bsubsampletype
 bsubsampletype
 btbuffer
+btbufferreadfromend
 btbufferreaditr
 btbufferwriteitr
+btbytebuffertouart2
+btbyteuart1tobuffer
 btcmdmode
 btfactoryreset
-btgetresponse
+btfindinbuffer
 btinit
-btinterrupthandle
 btreboot
 btrelayresponse
 btsendcommand
@@ -969,6 +971,7 @@ delay_5ms
 delay_80us
 delay_8ms
 delay_cyc
+dequeueevent
 dhen
 dhen_bit
 dhen_ssp1con3_bit
@@ -1058,6 +1061,10 @@ eepgd_bit
 eeprom_read
 eeprom_write
 equals_double
+eventbuffer
+eventbufferreaditr
+eventbufferwriteitr
+eventhandler
 exp
 expander_init
 expander_init_advanced
@@ -1241,6 +1248,7 @@ imagefileasarray
 indf0
 indf1
 indf2
+initevents
 initinterrupts
 initports
 int0
@@ -1958,6 +1966,7 @@ pwm5_set_duty
 pwm5_start
 pwm5_stop
 pwmcon
+queueevent
 r
 r_bit
 r_not_w
@@ -2745,6 +2754,7 @@ str3sync_bit
 strcat
 strchr
 strcmp
+strcompare
 strcpy
 strcspn
 strlen
@@ -2753,6 +2763,7 @@ strncmp
 strncpy
 strpbrk
 strrchr
+strreverse
 strspn
 strstr
 strtok

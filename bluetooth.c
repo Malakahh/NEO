@@ -1,46 +1,11 @@
 #include "bluetooth.h"
-
+#include "events.h"
 
 char BTbuffer[BTBufferSize];
 char *BTbufferWriteItr = BTbuffer;
 char *BTbufferReadItr = BTbuffer;
-int time = 0;
 
-void BTInterruptHandle()
-{
-	if(RC1IF_bit == 1)
-    {
-        //BTRelayResponse();
-        if (UART1_Data_Ready() == 1)
-	    {
-	    	//BTUart1ClearBuffer();
-	        //UART2_Write(UART1_Read());
-	        *BTbufferWriteItr++ = UART1_Read();
-	        if (BTbufferWriteItr >= BTbuffer + BTBufferSize)
-	        	BTbufferWriteItr = BTbuffer;
 
-	        UART2_Write(*BTbufferReadItr++);
-	        if (BTbufferReadItr >= BTbuffer + BTBufferSize)
-	        	BTbufferReadItr = BTbuffer;
-	    }
-    }
-    
-    if (INTCON.TMR0IF == 1)
-    {
-		LATB.RB2 = !LATB.RB2;
-
-		time++;
-	    INTCON.TMR0IF = 0;
-
-		if (time == UNDIRECTED_ADVERTISEMENT_TIME)
-		{
-			UART2_Write(time);
-			T0CON.TMR0ON = 0;
-			LATB.RB3 = 1;
-			//StartDirectedAdvertisement();
-		}
-    } 
-}
 
 /*
 void FirmwareUpgradeSetup()
@@ -86,18 +51,16 @@ void SetStoredBaud(unsigned long baud)
 
 void StartDirectedAdvertisement()
 {
-	BTSendCommand("y\r");
-	BTSendCommand("sr,00060000\r"); // no pin code
+	BTSendCommand("sr,20060000\r"); // no pin code
 	BTReboot();
-	BTSendCommand("a\r");
+	//BTSendCommand("a\r");
 }
 
 void StartUndirectedAdvertisement()
 {
-	BTSendCommand("y\r");
-	BTSendCommand("sr,04060000\r"); //No_Direct_Advertisement & no pin code
+	BTSendCommand("sr,24060000\r"); //No_Direct_Advertisement & no pin code
 	BTReboot();
-	BTSendCommand("a\r");
+	//BTSendCommand("a\r");
 }
 
 void BTInit()
@@ -141,14 +104,14 @@ void BTInit()
 	//BTFactoryReset();
 
 	BTReboot();
-	
+
+	//BTSendCommand("u\r");
+
 	StartUndirectedAdvertisement();
 
 	//BTSendCommand("gdf\r");
-	LATB.RB1 = 1;
 
-	//Start timer
-	T0CON.TMR0ON = 1;
+	
 }
 
 void BTSendCommand(char *cmd)
@@ -156,21 +119,82 @@ void BTSendCommand(char *cmd)
 	UART1_Write_Text(cmd);
 }
 
-void BTGetResponse(char *buffer)
+void BTByteUART1ToBuffer()
 {
-	Delay_ms(3);
-	while (UART1_Data_Ready())
+	if (UART1_Data_Ready() == 1)
+    {
+        *BTbufferWriteItr++ = UART1_Read();
+        if (BTbufferWriteItr >= BTbuffer + BTBufferSize)
+        	BTbufferWriteItr = BTbuffer;
+	}
+}
+
+void BTByteBufferToUART2()
+{
+	if (BTbufferReadItr != BTbufferWriteItr)
 	{
-		*buffer++ = UART1_Read();
+		UART2_Write(*BTbufferReadItr++);
+	    if (BTbufferReadItr >= BTbuffer + BTBufferSize)
+	    	BTbufferReadItr = BTbuffer;
+	}
+}
+
+char BTBufferReadFromEnd(char* msg, char maxLength, char stopChar)
+{
+	char length;
+
+	for (length = 0; length < maxLength; length++)
+	{
+		*(msg + length) = *(BTbufferWriteItr - 1 - length);
+
+		if (*(BTbufferWriteItr - 1 - length) == stopChar)
+			break;
+	}
+	
+	StrReverse(msg, length);
+	return length;
+}
+
+char BTFindInBuffer(char *msg, char msgLength, char searchLength)
+{
+	char i, n;
+	char temp;
+
+	for (i = 0; i < searchLength; i++)
+	{
+		temp = 1;
+
+		for (n = 0; n < msgLength; n++)
+		{
+			if (*(BTbufferWriteItr - 1 - i + n) != *(msg + n))
+			{
+				temp = 0;
+			}
+		}
+
+		if (temp)
+			return 1;
+	}
+
+	return 0;
+}
+
+void StrReverse(char* str, char length)
+{
+	char i, temp;
+
+	for(i = 0; i < length / 2; i++)
+	{
+	    temp = str[i];
+	    str[i] = str[length - i - 1];
+	    str[length - i - 1] = temp;
 	}
 }
 
 void BTRelayResponse()
 {
-	if (UART1_Data_Ready() == 1)
-    {
-        UART2_Write(UART1_Read());
-    }
+	BTByteUART1ToBuffer();
+	BTByteBufferToUART2();
 }
 
 void BTUart1ClearBuffer()
@@ -194,6 +218,7 @@ void BTFactoryReset()
 	BTSendCommand("sf,2\r");
 	Delay_ms(50);
 	BTReboot();
+	while(1);
 }
 
 void BTCmdMode(char enter)
