@@ -144,7 +144,7 @@ void EventHandler(char event)
     {
         T0CON.TMR0ON = 0;
         LATB.RB1 = 1;
-        
+
         StartDirectedAdvertisement();
     }
 }
@@ -156,6 +156,8 @@ void main() {
     InitEvents();
     InitInterrupts();
     BTInit();
+
+    
 
     //Start timer
     T0CON.TMR0ON = 1;

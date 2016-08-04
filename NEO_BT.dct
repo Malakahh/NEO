@@ -2285,6 +2285,7 @@ setfun32
 setiov3224
 setjmp
 setstoredbaud
+setupprivateservices
 shorttohex
 shorttostr
 sin

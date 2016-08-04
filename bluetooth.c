@@ -69,6 +69,23 @@ void StartUndirectedAdvertisement()
 	}
 }
 
+void SetupPrivateServices()
+{
+	BTSendCommand("SS,00000001"); 	//Enable private service support
+	BTSendCommand("PZ");			//Clear current private service and characteristics
+	BTSendCommand("PS,f4f232be5a5311e68b7786f30ca893d3"); //Set private service UUID to be 0xf4f232be5a5311e68b7786f30ca893d3
+
+	//Add private characteristic 0x1d4b745a5a5411e68b7786f30ca893d3 to
+	//current private service. The property of this characterstic is 0x02
+	//(readable) and has a maximum data size of 0x14 (20 bytes).
+	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,02,14");
+
+	//Add private characteristic 0xe25328b05a5411e68b7786f30ca893d3 to
+	//current private service. The property of this cahracteristic is 0x18,
+	//(writable and could notify) and has a maximum data size of 0x14 (20 bytes).
+	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14");
+}	
+
 void BTInit()
 {
 	unsigned long previousBaud;
@@ -106,11 +123,12 @@ void BTInit()
 
 	//BTFactoryReset();
 
+	SetupPrivateServices();
+
 	BTReboot();
 
-	//BTSendCommand("u\r");
-
 	StartUndirectedAdvertisement();
+
 
 	//BTSendCommand("gdf\r");
 
@@ -121,64 +139,6 @@ void BTSendCommand(char *cmd)
 {
 	UART1_Write_Text(cmd);
 }
-
-
-/*
-void BTByteUART1ToBuffer(char *)
-{
-	if (UART1_Data_Ready() == 1)
-    {
-        *bufferWriteItr++ = UART1_Read();
-        if (bufferWriteItr >= BTbuffer + BTBufferSize)
-        	bufferWriteItr = BTbuffer;
-	}
-}
-
-void BTByteBufferToUART2()
-{
-	if (BTbufferReadItr != BTbufferWriteItr)
-	{
-		UART2_Write(*BTbufferReadItr++);
-	    if (BTbufferReadItr >= BTbuffer + BTBufferSize)
-	    	BTbufferReadItr = BTbuffer;
-	}
-}
-*/
-/*
-char BTFindInBuffer(char *msg, char msgLength, char searchLength)
-{
-	char i, n;
-	char temp;
-
-	for (i = 0; i < searchLength; i++)
-	{
-		temp = 1;
-
-		for (n = 0; n < msgLength; n++)
-		{
-			if (*(BTbufferWriteItr - 1 - i + n) != *(msg + n))
-			{
-				temp = 0;
-			}
-		}
-
-		if (temp)
-			return 1;
-	}
-
-	return 0;
-}
-*/
-/*
-void BTUart1ClearBuffer()
-{
-	if (UART1_Data_Ready() == 1)
-		UART1_Read();
-
-	if (UART1_Data_Ready() == 1)
-		UART1_Read();
-}
-*/
 
 void BTReboot()
 {
