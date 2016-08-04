@@ -1,11 +1,7 @@
 #include "bluetooth.h"
 #include "events.h"
 
-char BTbuffer[BTBufferSize];
-char *BTbufferWriteItr = BTbuffer;
-char *BTbufferReadItr = BTbuffer;
-
-
+char directedAdvertisement = 1;
 
 /*
 void FirmwareUpgradeSetup()
@@ -51,24 +47,31 @@ void SetStoredBaud(unsigned long baud)
 
 void StartDirectedAdvertisement()
 {
-	BTSendCommand("sr,20060000\r"); // no pin code
-	BTReboot();
-	//BTSendCommand("a\r");
+	if (directedAdvertisement == 0)
+	{
+		BTSendCommand("sr,20060000\r"); // no pin code & autoadvertise
+		BTReboot();
+		//BTSendCommand("a\r");
+	
+		directedAdvertisement = 1;
+	}
 }
 
 void StartUndirectedAdvertisement()
 {
-	BTSendCommand("sr,24060000\r"); //No_Direct_Advertisement & no pin code
-	BTReboot();
-	//BTSendCommand("a\r");
+	if (directedAdvertisement == 1)
+	{
+		BTSendCommand("sr,24060000\r"); //No_Direct_Advertisement & no pin code & autoadvertise
+		BTReboot();
+		//BTSendCommand("a\r");
+
+		directedAdvertisement = 0;
+	}
 }
 
 void BTInit()
 {
 	unsigned long previousBaud;
-
-	//Initiate BT buffer
-	memset(BTbuffer, 0xFF, BTBufferSize);
 
 	UART2_Init(BT_UART_Baud);
 	Delay_ms(100);
@@ -119,13 +122,15 @@ void BTSendCommand(char *cmd)
 	UART1_Write_Text(cmd);
 }
 
-void BTByteUART1ToBuffer()
+
+/*
+void BTByteUART1ToBuffer(char *)
 {
 	if (UART1_Data_Ready() == 1)
     {
-        *BTbufferWriteItr++ = UART1_Read();
-        if (BTbufferWriteItr >= BTbuffer + BTBufferSize)
-        	BTbufferWriteItr = BTbuffer;
+        *bufferWriteItr++ = UART1_Read();
+        if (bufferWriteItr >= BTbuffer + BTBufferSize)
+        	bufferWriteItr = BTbuffer;
 	}
 }
 
@@ -138,23 +143,8 @@ void BTByteBufferToUART2()
 	    	BTbufferReadItr = BTbuffer;
 	}
 }
-
-char BTBufferReadFromEnd(char* msg, char maxLength, char stopChar)
-{
-	char length;
-
-	for (length = 0; length < maxLength; length++)
-	{
-		*(msg + length) = *(BTbufferWriteItr - 1 - length);
-
-		if (*(BTbufferWriteItr - 1 - length) == stopChar)
-			break;
-	}
-	
-	StrReverse(msg, length);
-	return length;
-}
-
+*/
+/*
 char BTFindInBuffer(char *msg, char msgLength, char searchLength)
 {
 	char i, n;
@@ -178,25 +168,8 @@ char BTFindInBuffer(char *msg, char msgLength, char searchLength)
 
 	return 0;
 }
-
-void StrReverse(char* str, char length)
-{
-	char i, temp;
-
-	for(i = 0; i < length / 2; i++)
-	{
-	    temp = str[i];
-	    str[i] = str[length - i - 1];
-	    str[length - i - 1] = temp;
-	}
-}
-
-void BTRelayResponse()
-{
-	BTByteUART1ToBuffer();
-	BTByteBufferToUART2();
-}
-
+*/
+/*
 void BTUart1ClearBuffer()
 {
 	if (UART1_Data_Ready() == 1)
@@ -205,6 +178,7 @@ void BTUart1ClearBuffer()
 	if (UART1_Data_Ready() == 1)
 		UART1_Read();
 }
+*/
 
 void BTReboot()
 {

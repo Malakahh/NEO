@@ -480,20 +480,11 @@ brgh2_bit
 bsr
 bsubsampletype
 bsubsampletype
-btbuffer
-btbufferreadfromend
-btbufferreaditr
-btbufferwriteitr
-btbytebuffertouart2
-btbyteuart1tobuffer
 btcmdmode
 btfactoryreset
-btfindinbuffer
 btinit
 btreboot
-btrelayresponse
 btsendcommand
-btuart1clearbuffer
 button
 byte2double
 bytetohex
@@ -851,6 +842,7 @@ cmp2md
 cmp2md_bit
 comfrem
 compare_double
+connectionestablished
 cos
 cose3
 cosh
@@ -975,6 +967,7 @@ dequeueevent
 dhen
 dhen_bit
 dhen_ssp1con3_bit
+directedadvertisement
 div
 div_16x16_s
 div_16x16_s_l
@@ -1097,6 +1090,7 @@ ferr1
 ferr1_bit
 ferr2
 ferr2_bit
+findinbuffer
 fixsign32
 flash_erase_64
 flash_erase_write_64
@@ -2117,6 +2111,7 @@ re2
 re2_bit
 re3
 re3_bit
+readfrombt
 res032
 ri
 ri_bit
@@ -2754,7 +2749,6 @@ str3sync_bit
 strcat
 strchr
 strcmp
-strcompare
 strcpy
 strcspn
 strlen
@@ -2763,7 +2757,6 @@ strncmp
 strncpy
 strpbrk
 strrchr
-strreverse
 strspn
 strstr
 strtok
@@ -3467,6 +3460,8 @@ uart1_read_text
 uart1_tx_idle
 uart1_write
 uart1_write_text
+uart1buffer
+uart1bufferwriteitr
 uart1md
 uart1md_bit
 uart2_data_ready

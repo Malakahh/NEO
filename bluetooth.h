@@ -18,26 +18,21 @@ void BTSendCommand(char *cmd);
 
 void BTReboot();
 void BTFactoryReset();
-void BTUart1ClearBuffer();
+//void BTUart1ClearBuffer();
 void BTCmdMode(char enter);
-void BTUart1ClearBuffer();
 
 unsigned long GetStoredBaud();
 void SetStoredBaud(unsigned long baud);
 
-void BTRelayResponse();
 
 //void FirmwareUpgradeSetup();
-void BTInterruptHandle();
 
 void StartDirectedAdvertisement();
 void StartUndirectedAdvertisement();
 
-void BTByteUART1ToBuffer();
-void BTByteBufferToUART2();
+//void BTByteUART1ToBuffer();
+//void BTByteBufferToUART2();
 
-char BTBufferReadFromEnd(char* msg, char maxLength, char stopChar);
-void StrReverse(char* str, char length);
-char BTFindInBuffer(char *msg, char msgLength, char searchLength);
+//char BTFindInBuffer(char *msg, char msgLength, char searchLength);
 
 #endif

@@ -1,9 +1,13 @@
 #include "bluetooth.h"
 #include "events.h"
 
-#define MAX_MSG_LENGTH 25
+#define UART1_BUFFER_SIZE 156
+
+char UART1Buffer[UART1_BUFFER_SIZE];
+char *UART1BufferWriteItr = UART1Buffer;
 
 int time = 0;
+char connectionEstablished = 0;
 
 void InitPorts()
 {
@@ -55,7 +59,7 @@ void interrupt()
         RC1IE_bit = 0;
     }
 
-    if (INTCON.TMR0IF == 1)
+    if (connectionEstablished == 0 && INTCON.TMR0IF == 1)
     {
         time++;
         INTCON.TMR0IF = 0;
@@ -69,32 +73,68 @@ void interrupt()
 
 }
 
-char StrCompare(char *str1, char length1, char *str2, char length2)
+char ReadFromBT(char *output)
 {
-    char i;
-
-    for (i = 0; i < length1; i++)
+    if (UART1_Data_Ready() == 1)
     {
-        if (*(str1 + i) != *(str2 + i))
-        {
-            return 0;
-        }
+        *UART1BufferWriteItr++ = UART1_Read();
+        *output = *(UART1BufferWriteItr - 1);
+
+        //Bounds
+        if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
+            UART1BufferWriteItr = UART1Buffer;
+
+        return 1;
     }
 
-    return length1 != length2;
+    return 0;
+}
+
+char FindInBuffer(char *msg, char msgLength, char searchLength)
+{
+    char searchItr, msgItr;
+    char found;
+
+    for (searchItr = 0; searchItr < searchLength - msgLength; searchItr++)
+    {
+        found = 1;
+
+        for (msgItr = 0; msgItr < msgLength; msgItr++)
+        {
+            if (*(UART1BufferWriteItr - 1 - searchItr - msgLength + msgItr) != *(msg + msgItr))
+            {
+                found = 0;
+            }
+        }
+
+        if (found)
+            return 1;
+    }
+
+    return 0;
 }
 
 void EventHandler(char event)
 {
+    char *received;
 
     if (event == ON_UART1_RECEIVE)
     {
-        BTRelayResponse();
+        ReadFromBT(received);
+        UART2_Write(*received);
 
-        //msgLength = BTBufferReadFromEnd(msg, MAX_MSG_LENGTH, '\n');
-        if (BTFindInBuffer("Conn", 4, 30))
+        if (*received == '\n')
         {
-            T0CON.TMR0ON = 0;
+            if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
+            {
+                T0CON.TMR0ON = 0;
+                connectionEstablished = 1;
+            }
+            else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
+            {
+                connectionEstablished = 0;
+                StartDirectedAdvertisement();
+            }
         }
 
         //Re-enable UART1 interrupt
@@ -102,7 +142,6 @@ void EventHandler(char event)
     }
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
-        UART2_Write(time);
         T0CON.TMR0ON = 0;
         LATB.RB1 = 1;
         
@@ -111,11 +150,13 @@ void EventHandler(char event)
 }
 
 void main() {
+    memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
+
     InitPorts();
     InitEvents();
     InitInterrupts();
-	BTInit();
-  
+    BTInit();
+
     //Start timer
     T0CON.TMR0ON = 1;
 

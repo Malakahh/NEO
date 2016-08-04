@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=bluetooth.c
+Value=main.c
 [USE_EEPROM]
 Value=0
 [USE_HEAP]
@@ -39,16 +39,13 @@ Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=5
+Count=3
 Path0=D:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Defs\
 Path1=D:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
 Path2=D:\GitRepos\NEO\
-Path3=D:\GitRepos\NEO\
-Path4=D:\GitRepos\NEO\
 [HEADER_PATH]
-Count=2
+Count=1
 Path0=D:\GitRepos\NEO\
-Path1=D:\GitRepos\NEO\
 [HEADERS]
 Count=2
 File0=bluetooth.h
