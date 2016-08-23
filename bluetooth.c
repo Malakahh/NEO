@@ -51,7 +51,6 @@ void StartDirectedAdvertisement()
 	{
 		BTSendCommand("sr,20060000\r"); // no pin code & autoadvertise
 		BTReboot();
-		//BTSendCommand("a\r");
 	
 		directedAdvertisement = 1;
 	}
@@ -63,7 +62,6 @@ void StartUndirectedAdvertisement()
 	{
 		BTSendCommand("sr,24060000\r"); //No_Direct_Advertisement & no pin code & autoadvertise
 		BTReboot();
-		//BTSendCommand("a\r");
 
 		directedAdvertisement = 0;
 	}
@@ -71,19 +69,19 @@ void StartUndirectedAdvertisement()
 
 void SetupPrivateServices()
 {
-	BTSendCommand("SS,00000001"); 	//Enable private service support
-	BTSendCommand("PZ");			//Clear current private service and characteristics
-	BTSendCommand("PS,f4f232be5a5311e68b7786f30ca893d3"); //Set private service UUID to be 0xf4f232be5a5311e68b7786f30ca893d3
+	BTSendCommand("SS,00000001\r"); 	//Enable private service support
+	BTSendCommand("PZ\r");			//Clear current private service and characteristics
+	BTSendCommand("PS,f4f232be5a5311e68b7786f30ca893d3\r"); //Set private service UUID to be 0xf4f232be5a5311e68b7786f30ca893d3
 
 	//Add private characteristic 0x1d4b745a5a5411e68b7786f30ca893d3 to
 	//current private service. The property of this characterstic is 0x02
 	//(readable) and has a maximum data size of 0x14 (20 bytes).
-	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,02,14");
+	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,02,14\r");
 
 	//Add private characteristic 0xe25328b05a5411e68b7786f30ca893d3 to
 	//current private service. The property of this cahracteristic is 0x18,
 	//(writable and could notify) and has a maximum data size of 0x14 (20 bytes).
-	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14");
+	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14\r");
 }	
 
 void BTInit()
@@ -96,6 +94,8 @@ void BTInit()
 	previousBaud = GetStoredBaud();
 	if (previousBaud == BT_UART_Baud_Default || previousBaud == 0xFFFFFFFF)
 	{
+		LATB.RB3 = 1;
+
 		//Setup UART interfaces - UART1 is the BT module, UART2 is the connected device (PC, smartphone, etc)
 		UART1_Init(BT_UART_Baud_Default);
 		Delay_ms(100);
@@ -119,9 +119,9 @@ void BTInit()
 	UART1_Init(BT_UART_Baud);
 	Delay_ms(100);
 
-	BTSendCommand("s-,NEO\r");
-
 	//BTFactoryReset();
+
+	BTSendCommand("s-,NEO\r");
 
 	SetupPrivateServices();
 
