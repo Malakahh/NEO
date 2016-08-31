@@ -157,7 +157,7 @@ void main() {
     InitInterrupts();
     BTInit();
 
-    
+    BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
 
     //Start timer
     T0CON.TMR0ON = 1;
