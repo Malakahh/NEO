@@ -74,14 +74,14 @@ void SetupPrivateServices()
 	BTSendCommand("PS,f4f232be5a5311e68b7786f30ca893d3\r"); //Set private service UUID to be 0xf4f232be5a5311e68b7786f30ca893d3
 
 	//Add private characteristic 0x1d4b745a5a5411e68b7786f30ca893d3 to
-	//current private service. The property of this characterstic is 0x02
-	//(readable) and has a maximum data size of 0x14 (20 bytes).
-	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,02,14\r");
+	//current private service. The property of this characterstic is 0x12
+	//(readable and could notify) and has a maximum data size of 0x14 (20 bytes).
+	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,12,14\r");
 
 	//Add private characteristic 0xe25328b05a5411e68b7786f30ca893d3 to
-	//current private service. The property of this cahracteristic is 0x18,
-	//(writable and could notify) and has a maximum data size of 0x14 (20 bytes).
-	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14\r");
+	//current private service. The property of this cahracteristic is 0x08,
+	//(writable) and has a maximum data size of 0x14 (20 bytes).
+	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,8,14\r");
 }	
 
 void BTInit()
