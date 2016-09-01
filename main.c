@@ -8,6 +8,7 @@ char *UART1BufferWriteItr = UART1Buffer;
 
 int time = 0;
 char connectionEstablished = 0;
+char receivingChargerMsg = 0;
 
 void InitPorts()
 {
@@ -123,17 +124,33 @@ void EventHandler(char event)
         ReadFromBT(received);
         UART2_Write(*received);
 
-        if (*received == '\n')
+        if (receivingChargerMsg)
         {
-            if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
+            if (*received == '|')
             {
-                T0CON.TMR0ON = 0;
-                connectionEstablished = 1;
+                receivingChargerMsg = 0;
             }
-            else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
+
+            BTSendCommand(sprintf("suw,1d4b745a5a5411e68b7786f30ca893d3,%c\r", *received));
+        }
+        else
+        {
+            if (*received == '\n')
             {
-                connectionEstablished = 0;
-                StartDirectedAdvertisement();
+                if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
+                {
+                    T0CON.TMR0ON = 0;
+                    connectionEstablished = 1;
+                }
+                else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
+                {
+                    connectionEstablished = 0;
+                    StartDirectedAdvertisement();
+                }
+            }
+            else if (*received == '|')
+            {
+                receivingChargerMsg = 1;
             }
         }
 
@@ -157,7 +174,7 @@ void main() {
     InitInterrupts();
     BTInit();
 
-    BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
+    //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
 
     //Start timer
     T0CON.TMR0ON = 1;
@@ -165,5 +182,6 @@ void main() {
     while (1)
     {
         EventHandler(DequeueEvent());
+        BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
     }
 }
