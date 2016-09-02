@@ -79,9 +79,9 @@ void SetupPrivateServices()
 	BTSendCommand("PC,1d4b745a5a5411e68b7786f30ca893d3,12,14\r");
 
 	//Add private characteristic 0xe25328b05a5411e68b7786f30ca893d3 to
-	//current private service. The property of this cahracteristic is 0x08,
-	//(writable) and has a maximum data size of 0x14 (20 bytes).
-	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,8,14\r");
+	//current private service. The property of this cahracteristic is 0x18,
+	//(writable and could notify) and has a maximum data size of 0x14 (20 bytes).
+	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14\r");
 }	
 
 void BTInit()
@@ -134,12 +134,12 @@ void BTInit()
 
 	
 }
-
+/*
 void BTSendCommand(char *cmd)
 {
 	UART1_Write_Text(cmd);
 }
-
+*/
 void BTReboot()
 {
 	BTSendCommand("r,1\r");

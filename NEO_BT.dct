@@ -484,7 +484,6 @@ btcmdmode
 btfactoryreset
 btinit
 btreboot
-btsendcommand
 button
 byte2double
 bytetohex
@@ -773,6 +772,7 @@ cf_write_sector
 cfgs
 cfgs_bit
 character8x7
+chargertest
 chs0
 chs0_bit
 chs1
@@ -2993,6 +2993,7 @@ tblptr
 tblptrh
 tblptrl
 tblptru
+test
 tft_16bit_circle
 tft_16bit_color16bittorgb
 tft_16bit_defaultfont

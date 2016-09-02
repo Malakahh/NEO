@@ -11,10 +11,12 @@
 
 #define UNDIRECTED_ADVERTISEMENT_TIME 60
 
+#define BTSendCommand UART1_Write_Text
+
 // RN4020
 
 void BTInit();
-void BTSendCommand(char *cmd);
+//void BTSendCommand(char *cmd);
 
 void BTReboot();
 void BTFactoryReset();

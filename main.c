@@ -3,6 +3,15 @@
 
 #define UART1_BUFFER_SIZE 156
 
+#define writeReg 0x80
+#define readReg 0x00
+#define writeEEprom 0x40
+#define readEEprom 0x00
+#define c_cmd_ee_data_high 0x05
+#define c_cmd_ee_data_low 0x06
+#define c_cmd_ee_addr_high 0x07
+#define c_cmd_ee_addr_low 0x08
+
 char UART1Buffer[UART1_BUFFER_SIZE];
 char *UART1BufferWriteItr = UART1Buffer;
 
@@ -10,16 +19,20 @@ int time = 0;
 char connectionEstablished = 0;
 char receivingChargerMsg = 0;
 
+int test = 0;
+
 void InitPorts()
 {
 	ANSELC = 0;
+    ANSELB = 0;
     ANSELD = 0;
 
     //TRISA = 0;
     TRISB = 0;
-    //TRISC = 0;
+    TRISC = 0x10;
     //TRISD = 0;
     TRISE = 0;
+
 
     //LATA = 0x00;
     LATB = 0x00;
@@ -131,7 +144,7 @@ void EventHandler(char event)
                 receivingChargerMsg = 0;
             }
 
-            BTSendCommand(sprintf("suw,1d4b745a5a5411e68b7786f30ca893d3,%c\r", *received));
+            BTSendCommand(sprinti("suw,1d4b745a5a5411e68b7786f30ca893d3,%c\r", *received));
         }
         else
         {
@@ -152,6 +165,14 @@ void EventHandler(char event)
             {
                 receivingChargerMsg = 1;
             }
+            else if (*received == '.')
+            {
+                if (FindInBuffer("747C", 4, 10))
+                {
+                    Delay_ms(5000);
+                    BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
+                }
+            }
         }
 
         //Re-enable UART1 interrupt
@@ -166,7 +187,46 @@ void EventHandler(char event)
     }
 }
 
+void ChargerTest()
+{
+    char error, initError;
+
+    memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
+
+    InitPorts();
+    BTInit();
+
+    initError = Soft_UART_Init(&PORTC, 4, 5, 1200, 0);
+
+    Delay_ms(200);
+
+    Soft_UART_Write(c_cmd_ee_addr_high | writeReg);
+    Delay_ms(200);
+    Soft_UART_Write(0x00);
+    Delay_ms(200);
+    Soft_UART_Write(c_cmd_ee_addr_low | writeReg);
+    Delay_ms(200);
+    Soft_UART_Write(0x01);
+    Delay_ms(200);
+    Soft_UART_Write(c_cmd_ee_data_high | readReg);
+    Delay_ms(200);
+    Soft_UART_Write(c_cmd_ee_data_low | readReg);
+    Delay_ms(200);
+    
+    LATB.RB4 = 1;
+
+    while(1)
+    {
+        UART2_Write(Soft_UART_Read(&error));
+
+        LATB.RB5 = 1;
+    }
+    
+
+}
+
 void main() {
+    /*
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
 
     InitPorts();
@@ -182,6 +242,16 @@ void main() {
     while (1)
     {
         EventHandler(DequeueEvent());
-        BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
+        test++;
+
+        if (test > 100000)
+        {
+            test = 0;
+            //BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
+        }
+
     }
+    */
+
+    ChargerTest();
 }
