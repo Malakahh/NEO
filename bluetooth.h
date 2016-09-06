@@ -15,7 +15,7 @@
 
 // RN4020
 
-void BTInit();
+void InitBT();
 //void BTSendCommand(char *cmd);
 
 void BTReboot();

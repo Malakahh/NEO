@@ -84,19 +84,16 @@ void SetupPrivateServices()
 	BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14\r");
 }	
 
-void BTInit()
+void InitBT()
 {
 	unsigned long previousBaud;
-
-	UART2_Init(BT_UART_Baud);
-	Delay_ms(100);
 
 	previousBaud = GetStoredBaud();
 	if (previousBaud == BT_UART_Baud_Default || previousBaud == 0xFFFFFFFF)
 	{
 		LATB.RB3 = 1;
 
-		//Setup UART interfaces - UART1 is the BT module, UART2 is the connected device (PC, smartphone, etc)
+		//Setup UART interfaces - UART1 is the BT module
 		UART1_Init(BT_UART_Baud_Default);
 		Delay_ms(100);
 

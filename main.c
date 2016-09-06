@@ -12,6 +12,11 @@
 #define c_cmd_ee_addr_high 0x07
 #define c_cmd_ee_addr_low 0x08
 
+#define TerminalWrite Soft_UART_Write
+#define ChargerWriteByte UART2_Write
+#define ChargerRead UART2_Read
+#define ChargerDataReady UART2_Data_Ready
+
 char UART1Buffer[UART1_BUFFER_SIZE];
 char *UART1BufferWriteItr = UART1Buffer;
 
@@ -23,20 +28,21 @@ int test = 0;
 
 void InitPorts()
 {
+
 	ANSELC = 0;
     ANSELB = 0;
     ANSELD = 0;
 
     //TRISA = 0;
     TRISB = 0;
-    TRISC = 0x10;
+    TRISC = 0x08;
     //TRISD = 0;
     TRISE = 0;
 
 
     //LATA = 0x00;
     LATB = 0x00;
-    //LATC = 0x00;
+    LATC = 0x00;
     //LATD = 0x00;
     LATE = 0x00;
 }
@@ -49,6 +55,10 @@ void InitInterrupts()
     //UART1
     RC1IE_bit = 1;  // turn ON interrupt on UART1 receive
     RC1IF_bit = 0;  // Clear interrupt flag
+
+    //UART2
+    RC2IF_bit = 1;  // turn ON interrupt on UART2 receive
+    RC2IF_bit = 0;  // Clear interrupt flag
 
     //Interrupt timer, 1Hz
     INTCON.TMR0IE = 1;      // Enable timer0
@@ -187,42 +197,94 @@ void EventHandler(char event)
     }
 }
 
+void TerminalWriteText(char *msg)
+{
+    int i;
+    for (i = 0; i < strlen(msg); i++)
+    {
+        TerminalWrite(msg[i]);
+    }
+}
+
+void InitCharger()
+{
+    UART2_Init(1200);
+    Delay_ms(100);
+}
+
+void InitTerminal()
+{
+    Soft_UART_Init(&LATC, 5, 4, 2400, 0);
+    Delay_ms(100);
+}
+
 void ChargerTest()
 {
-    char error, initError;
-
-    memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
+    char error;
+    char msg;
+    int i = 0;
 
     InitPorts();
-    BTInit();
+    InitTerminal();
+    InitCharger();
 
-    initError = Soft_UART_Init(&PORTC, 4, 5, 1200, 0);
+    TerminalWriteText("Begin\n");
 
-    Delay_ms(200);
+    ChargerWriteByte(c_cmd_ee_addr_high | writeReg);
+    Delay_ms(100);
+    ChargerWriteByte(0x00);
+    Delay_ms(100);
+    ChargerWriteByte(c_cmd_ee_addr_low | writeReg);
+    Delay_ms(100);
+    ChargerWriteByte(0x01);
+    Delay_ms(100);
+    ChargerWriteByte(c_cmd_ee_data_high | readReg);
+    Delay_ms(100);
 
-    Soft_UART_Write(c_cmd_ee_addr_high | writeReg);
-    Delay_ms(200);
-    Soft_UART_Write(0x00);
-    Delay_ms(200);
-    Soft_UART_Write(c_cmd_ee_addr_low | writeReg);
-    Delay_ms(200);
-    Soft_UART_Write(0x01);
-    Delay_ms(200);
-    Soft_UART_Write(c_cmd_ee_data_high | readReg);
-    Delay_ms(200);
-    Soft_UART_Write(c_cmd_ee_data_low | readReg);
-    Delay_ms(200);
-    
+    LATB.RB0 = 1;
+
+    while (1)
+    {
+        if (ChargerDataReady())
+        {
+            TerminalWrite(ChargerRead());
+            break;
+        }
+    }
+
+    ChargerWriteByte(c_cmd_ee_data_low | readReg);
+    Delay_ms(100);
+
+    LATB.RB2 = 1;
+
+    while (1)
+    {
+        if (ChargerDataReady())
+        {
+            TerminalWrite(ChargerRead());
+            break;
+        }
+    }
+
+/*
+
     LATB.RB4 = 1;
 
     while(1)
     {
-        UART2_Write(Soft_UART_Read(&error));
+        msg = ChargerRead();
+
+        if (msg != 0 && (i < 1 || msg != 0x5e))
+        {
+            TerminalWrite(msg);
+
+            if (msg == 0x5e)
+                i++;
+        }
 
         LATB.RB5 = 1;
     }
-    
-
+    */
 }
 
 void main() {

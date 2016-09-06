@@ -482,7 +482,6 @@ bsubsampletype
 bsubsampletype
 btcmdmode
 btfactoryreset
-btinit
 btreboot
 button
 byte2double
@@ -1242,9 +1241,12 @@ imagefileasarray
 indf0
 indf1
 indf2
+initbt
+initcharger
 initevents
 initinterrupts
 initports
+initterminal
 int0
 int0_bit
 int0e
@@ -2993,6 +2995,7 @@ tblptr
 tblptrh
 tblptrl
 tblptru
+terminalwritetext
 test
 tft_16bit_circle
 tft_16bit_color16bittorgb
