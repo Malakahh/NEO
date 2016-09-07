@@ -771,7 +771,6 @@ cf_write_sector
 cfgs
 cfgs_bit
 character8x7
-chargertest
 chs0
 chs0_bit
 chs1
@@ -1195,6 +1194,7 @@ go_done_bit
 go_not_done
 go_not_done_bit
 halfbits
+hexparserbyetcnt
 hfiofs
 hfiofs_bit
 hlvdcon
@@ -1794,6 +1794,7 @@ p3ssbd0
 p3ssbd0_bit
 p3ssbd1
 p3ssbd1_bit
+parsehex
 pbcurrenthuffsymboltable
 pbcurrenthuffsymboltable
 pbcurrenthuffsymlentable
@@ -2114,6 +2115,7 @@ re2_bit
 re3
 re3_bit
 readfrombt
+readfromcharger
 receivingchargermsg
 res032
 ri
@@ -2996,7 +2998,6 @@ tblptrh
 tblptrl
 tblptru
 terminalwritetext
-test
 tft_16bit_circle
 tft_16bit_color16bittorgb
 tft_16bit_defaultfont
@@ -3477,6 +3478,8 @@ uart2_read_text
 uart2_tx_idle
 uart2_write
 uart2_write_text
+uart2buffer
+uart2bufferwriteitr
 uart2md
 uart2md_bit
 uldiv

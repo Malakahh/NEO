@@ -2,6 +2,7 @@
 #include "events.h"
 
 #define UART1_BUFFER_SIZE 156
+#define UART2_BUFFER_SIZE 156
 
 #define writeReg 0x80
 #define readReg 0x00
@@ -20,11 +21,13 @@
 char UART1Buffer[UART1_BUFFER_SIZE];
 char *UART1BufferWriteItr = UART1Buffer;
 
+char UART2Buffer[UART2_BUFFER_SIZE];
+char *UART2BufferWriteItr = UART2Buffer;
+
 int time = 0;
 char connectionEstablished = 0;
 char receivingChargerMsg = 0;
-
-int test = 0;
+char hexParserByetCnt = 0;
 
 void InitPorts()
 {
@@ -57,7 +60,7 @@ void InitInterrupts()
     RC1IF_bit = 0;  // Clear interrupt flag
 
     //UART2
-    RC2IF_bit = 1;  // turn ON interrupt on UART2 receive
+    RC2IE_bit = 1;  // turn ON interrupt on UART2 receive
     RC2IF_bit = 0;  // Clear interrupt flag
 
     //Interrupt timer, 1Hz
@@ -81,6 +84,14 @@ void interrupt()
         
         //Disable UART1 interrupt
         RC1IE_bit = 0;
+    }
+
+    if (RC2IF_bit == 1) //UART2 receive
+    {
+        QueueEvent(ON_UART2_RECEIVE);
+
+        //Disable UART2 interrupt
+        RC2IE_bit = 0;
     }
 
     if (connectionEstablished == 0 && INTCON.TMR0IF == 1)
@@ -114,6 +125,23 @@ char ReadFromBT(char *output)
     return 0;
 }
 
+char ReadFromCharger(char *output)
+{
+    if (ChargerDataReady() == 1)
+    {
+        *UART2BufferWriteItr++ = ChargerRead();
+        *output = *(UART2BufferWriteItr - 1);
+
+        //Bounds
+        if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
+            UART2BufferWriteItr = UART2Buffer;
+
+        return 1;
+    }
+
+    return 0;
+}
+
 char FindInBuffer(char *msg, char msgLength, char searchLength)
 {
     char searchItr, msgItr;
@@ -138,23 +166,51 @@ char FindInBuffer(char *msg, char msgLength, char searchLength)
     return 0;
 }
 
+char ParseHex()
+{
+    char byte[2];
+
+    if (UART1BufferWriteItr == UART1Buffer)
+    {
+        byte[0] = *(UART1Buffer + UART1_BUFFER_SIZE - 1);
+        byte[1] = *(UART1Buffer + UART1_BUFFER_SIZE);
+    }
+    else
+    {
+        byte[0] = *(UART1BufferWriteItr - 2);
+        byte[1] = *(UART1BufferWriteItr - 1);   
+    }
+
+    return xtoi(byte);
+}
+
 void EventHandler(char event)
 {
     char *received;
+    char parsedHex;
 
     if (event == ON_UART1_RECEIVE)
     {
         ReadFromBT(received);
-        UART2_Write(*received);
+        parsedHex = ParseHex();
+        TerminalWrite(*received);
 
         if (receivingChargerMsg)
         {
-            if (*received == '|')
+            if (parsedHex == '|')
             {
                 receivingChargerMsg = 0;
             }
+            else
+            {
+                hexParserByetCnt++;
 
-            BTSendCommand(sprinti("suw,1d4b745a5a5411e68b7786f30ca893d3,%c\r", *received));
+                if (hexParserByetCnt >= 2)
+                {
+                    hexParserByetCnt = 0;
+                    ChargerWriteByte(parsedHex);
+                }
+            }
         }
         else
         {
@@ -171,10 +227,11 @@ void EventHandler(char event)
                     StartDirectedAdvertisement();
                 }
             }
-            else if (*received == '|')
+            else if (parsedHex == '|')
             {
                 receivingChargerMsg = 1;
             }
+            /*
             else if (*received == '.')
             {
                 if (FindInBuffer("747C", 4, 10))
@@ -183,10 +240,19 @@ void EventHandler(char event)
                     BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
                 }
             }
+            */
         }
 
         //Re-enable UART1 interrupt
         RC1IE_bit = 1;
+    }
+    else if (event == ON_UART2_RECEIVE)
+    {
+        ReadFromCharger(received);
+        TerminalWrite(*received);
+
+        //Re-enable UART2 interrupt
+        RC2IE_bit = 1;
     }
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
@@ -218,6 +284,7 @@ void InitTerminal()
     Delay_ms(100);
 }
 
+/*
 void ChargerTest()
 {
     char error;
@@ -265,36 +332,18 @@ void ChargerTest()
             break;
         }
     }
-
-/*
-
-    LATB.RB4 = 1;
-
-    while(1)
-    {
-        msg = ChargerRead();
-
-        if (msg != 0 && (i < 1 || msg != 0x5e))
-        {
-            TerminalWrite(msg);
-
-            if (msg == 0x5e)
-                i++;
-        }
-
-        LATB.RB5 = 1;
-    }
-    */
 }
+*/
 
 void main() {
-    /*
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
 
     InitPorts();
     InitEvents();
     InitInterrupts();
-    BTInit();
+    InitTerminal();
+    InitCharger();
+    InitBT();
 
     //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
 
@@ -304,16 +353,5 @@ void main() {
     while (1)
     {
         EventHandler(DequeueEvent());
-        test++;
-
-        if (test > 100000)
-        {
-            test = 0;
-            //BTSendCommand("sur,e25328b05a5411e68b7786f30ca893d3\r");
-        }
-
     }
-    */
-
-    ChargerTest();
 }
