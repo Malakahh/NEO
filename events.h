@@ -9,7 +9,9 @@
 #define ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED 0x03
 
 void InitEvents();
-void QueueEvent(char event);
-char DequeueEvent();
+void QueueEvent1(char event);
+void QueueEvent2(char event);
+char DequeueEvent1();
+char DequeueEvent2();
 
 #endif

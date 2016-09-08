@@ -26,7 +26,8 @@ char *UART2BufferWriteItr = UART2Buffer;
 
 int time = 0;
 char connectionEstablished = 0;
-char receivingChargerMsg = 0;
+char relayToCharger = 0;
+char relayFromCharger = 0;
 char hexParserByetCnt = 0;
 
 void InitPorts()
@@ -80,7 +81,7 @@ void interrupt()
 {
     if(RC1IF_bit == 1) //UART1 receive
     {
-        QueueEvent(ON_UART1_RECEIVE);
+        QueueEvent1(ON_UART1_RECEIVE);
         
         //Disable UART1 interrupt
         RC1IE_bit = 0;
@@ -88,7 +89,7 @@ void interrupt()
 
     if (RC2IF_bit == 1) //UART2 receive
     {
-        QueueEvent(ON_UART2_RECEIVE);
+        QueueEvent2(ON_UART2_RECEIVE);
 
         //Disable UART2 interrupt
         RC2IE_bit = 0;
@@ -102,7 +103,7 @@ void interrupt()
 
         if (time >= UNDIRECTED_ADVERTISEMENT_TIME)
         {
-            QueueEvent(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
+            QueueEvent1(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
         }
     } 
 
@@ -184,22 +185,26 @@ char ParseHex()
     return xtoi(byte);
 }
 
-void EventHandler(char event)
+void EventHandler1(char event)
 {
     char *received;
     char parsedHex;
 
-    if (event == ON_UART1_RECEIVE)
+    if (event == NO_EVENT)
+    {
+        relayFromCharger = 1;
+    }
+    else if (event == ON_UART1_RECEIVE)
     {
         ReadFromBT(received);
         parsedHex = ParseHex();
         TerminalWrite(*received);
 
-        if (receivingChargerMsg)
+        if (relayToCharger)
         {
             if (parsedHex == '|')
             {
-                receivingChargerMsg = 0;
+                relayToCharger = 0;
             }
             else
             {
@@ -229,7 +234,7 @@ void EventHandler(char event)
             }
             else if (parsedHex == '|')
             {
-                receivingChargerMsg = 1;
+                relayToCharger = 1;
             }
             /*
             else if (*received == '.')
@@ -244,15 +249,8 @@ void EventHandler(char event)
         }
 
         //Re-enable UART1 interrupt
+        RC1IF_bit = 0;
         RC1IE_bit = 1;
-    }
-    else if (event == ON_UART2_RECEIVE)
-    {
-        ReadFromCharger(received);
-        TerminalWrite(*received);
-
-        //Re-enable UART2 interrupt
-        RC2IE_bit = 1;
     }
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
@@ -260,6 +258,32 @@ void EventHandler(char event)
         LATB.RB1 = 1;
 
         StartDirectedAdvertisement();
+    }
+}
+
+void EventHandler2(char event)
+{
+    char *received;
+    char buffer[60];
+
+    if (event == NO_EVENT)
+    {
+        relayFromCharger = 0;
+    }
+    else if (event == ON_UART2_RECEIVE)
+    {
+        ReadFromCharger(received);
+
+        LATB.RB7 = 1;
+        sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%X\r", *received);
+        BTSendCommand(buffer);
+        //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
+
+        //TerminalWrite(*received);
+
+        //Re-enable UART2 interrupt
+        RC2IF_bit = 0;
+        RC2IE_bit = 1;
     }
 }
 
@@ -352,6 +376,13 @@ void main() {
 
     while (1)
     {
-        EventHandler(DequeueEvent());
+        if (!relayFromCharger)
+        {
+            EventHandler1(DequeueEvent1());
+        }
+        else
+        {
+            EventHandler2(DequeueEvent2());
+        }        
     }
 }
