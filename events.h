@@ -1,7 +1,7 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-#define EVENT_BUFFER_SIZE 100
+#define EVENT_BUFFER_SIZE 4
 
 #define NO_EVENT 0x00
 #define ON_UART1_RECEIVE 0x01

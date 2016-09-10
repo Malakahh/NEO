@@ -886,6 +886,7 @@ ctpls
 ctpls_bit
 cttrig
 cttrig_bit
+currenteventqueue
 cvref
 cvref_bit
 d
@@ -1053,14 +1054,10 @@ eepgd_bit
 eeprom_read
 eeprom_write
 equals_double
-eventbuffer1
-eventbuffer1readitr
-eventbuffer1writeitr
-eventbuffer2
-eventbuffer2readitr
-eventbuffer2writeitr
 eventhandler1
 eventhandler2
+events1
+events2
 exp
 expander_init
 expander_init_advanced
@@ -2120,9 +2117,8 @@ re2
 re2_bit
 re3
 re3_bit
-readfrombt
-readfromcharger
-relayfromcharger
+readbuffer1
+readbuffer2
 relaytocharger
 res032
 ri
@@ -3004,6 +3000,7 @@ tblptr
 tblptrh
 tblptrl
 tblptru
+terminalwrite
 terminalwritetext
 tft_16bit_circle
 tft_16bit_color16bittorgb
@@ -3475,6 +3472,7 @@ uart1_tx_idle
 uart1_write
 uart1_write_text
 uart1buffer
+uart1bufferreaditr
 uart1bufferwriteitr
 uart1md
 uart1md_bit
@@ -3486,6 +3484,7 @@ uart2_tx_idle
 uart2_write
 uart2_write_text
 uart2buffer
+uart2bufferreaditr
 uart2bufferwriteitr
 uart2md
 uart2md_bit
@@ -3553,6 +3552,8 @@ wrerr
 wrerr_bit
 wrestartinterval
 wrestartinterval
+writebuffer1
+writebuffer2
 wue
 wue_baud1con_bit
 wue_bit

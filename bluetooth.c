@@ -91,7 +91,7 @@ void InitBT()
 	previousBaud = GetStoredBaud();
 	if (previousBaud == BT_UART_Baud_Default || previousBaud == 0xFFFFFFFF)
 	{
-		LATB.RB3 = 1;
+		//LATB.RB0 = 1;
 
 		//Setup UART interfaces - UART1 is the BT module
 		UART1_Init(BT_UART_Baud_Default);
