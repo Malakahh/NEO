@@ -171,7 +171,7 @@ void interrupt()
     {
         time++;
         INTCON.TMR0IF = 0;
-        //LATB.RB4 = !LATB.RB4;
+        LATB.RB4 = !LATB.RB4;
 
         if (time >= UNDIRECTED_ADVERTISEMENT_TIME)
         {
@@ -210,8 +210,13 @@ char ParseHex()
 
     if (UART1BufferReadItr == UART1Buffer)
     {
+        byte[0] = *(UART1Buffer + UART1_BUFFER_SIZE - 2);
+        byte[1] = *(UART1Buffer + UART1_BUFFER_SIZE - 1);
+    }
+    else if (UART1BufferReadItr == UART1Buffer + 1)
+    {
         byte[0] = *(UART1Buffer + UART1_BUFFER_SIZE - 1);
-        byte[1] = *(UART1Buffer + UART1_BUFFER_SIZE);
+        byte[1] = *(UART1BufferReadItr - 1);
     }
     else
     {
@@ -233,11 +238,12 @@ void EventHandler1(char event)
     {
         received = ReadBuffer1();
         parsedHex = ParseHex();
-        TerminalWrite(received);
+        //TerminalWrite(received);
 
         if (parsedHex == '|')
         {
             relayToCharger = !relayToCharger;
+            hexParserByetCnt = 0;
             return;
         }
 
@@ -245,9 +251,12 @@ void EventHandler1(char event)
         {
             hexParserByetCnt++;
 
-            if (hexParserByetCnt % 2 == 0)
+            if (hexParserByetCnt == 2)
             {
+                hexParserByetCnt = 0;
+                TerminalWrite(parsedHex);
                 ChargerWriteByte(parsedHex);
+                Delay_ms(15); //Per specification of the charger software
             }
         }
         else if (received == '\n')
@@ -280,14 +289,16 @@ void EventHandler2(char event)
 
     if (event == ON_UART2_RECEIVE)
     {
+        hexParserByetCnt = 0;
+        relayToCharger = 0;
         received = ReadBuffer2();
 
         //LATB.RB7 = 1;
-        sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%X\r", received);
-        
-        //TerminalWrite(received);
+        TerminalWrite('\n');
+        sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
+        TerminalWriteText(buffer);
 
-        //BTSendCommand(buffer);
+        BTSendCommand(buffer);
         //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
 
         //TerminalWrite(*received);
@@ -379,8 +390,6 @@ void main() {
 
     while (1)
     {
-        BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
-
         if (currentEventQueue == 1)
         {
             event = DequeueEvent1();
