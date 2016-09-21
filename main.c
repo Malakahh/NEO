@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "bluetooth.h"
 #include "events.h"
 
@@ -31,50 +32,59 @@ char relayToCharger = 0;
 
 void TerminalWrite(char msg)
 {
-    RC1IE_bit = 0;
-    RC2IE_bit = 0;
+	#ifdef DEBUG
+	    RC1IE_bit = 0;
+	    RC2IE_bit = 0;
 
-    Soft_UART_Write(msg);
+	    Soft_UART_Write(msg);
 
-    RC1IE_bit = 1;
-    RC2IE_bit = 1;
+	    RC1IE_bit = 1;
+	    RC2IE_bit = 1;
+    #endif
 }
 
 void TerminalWriteText(char *msg)
 {
-    int i;
+	#ifdef DEBUG
+	    int i;
 
-    RC1IE_bit = 0;
-    RC2IE_bit = 0;
+	    RC1IE_bit = 0;
+	    RC2IE_bit = 0;
 
-    for (i = 0; i < strlen(msg); i++)
-    {
-        TerminalWrite(msg[i]);
-    }
+	    for (i = 0; i < strlen(msg); i++)
+	    {
+	        TerminalWrite(msg[i]);
+	    }
 
-    RC1IE_bit = 1;
-    RC2IE_bit = 1;
+	    RC1IE_bit = 1;
+	    RC2IE_bit = 1;
+    #endif
 }
 
 void InitPorts()
 {
+	#ifdef DEBUG
+		ANSELC = 0;
+	    ANSELB = 0;
 
-	ANSELC = 0;
-    ANSELB = 0;
-    ANSELD = 0;
+	    TRISB = 0;
+	    TRISC = 0x08;
 
-    //TRISA = 0;
-    TRISB = 0;
-    TRISC = 0x08;
-    //TRISD = 0;
-    TRISE = 0;
+	    LATB = 0x00;
+	    LATC = 0x00;
+	#else
+		ANSELC = 0;
+	    ANSELB = 0;
+	    ANSELD = 0;
 
+	    TRISB = 0;
+	    TRISC = 0x08;
+	    TRISE = 0;
 
-    //LATA = 0x00;
-    LATB = 0x00;
-    LATC = 0x00;
-    //LATD = 0x00;
-    LATE = 0x00;
+	    LATB = 0x00;
+	    LATC = 0x00;
+	    LATE = 0x00;
+    #endif
 }
 
 void InitInterrupts()
@@ -238,7 +248,6 @@ void EventHandler1(char event)
     {
         received = ReadBuffer1();
         parsedHex = ParseHex();
-        //TerminalWrite(received);
 
         if (parsedHex == '|')
         {
@@ -254,7 +263,6 @@ void EventHandler1(char event)
             if (hexParserByetCnt == 2)
             {
                 hexParserByetCnt = 0;
-                //TerminalWrite(parsedHex);
                 ChargerWriteByte(parsedHex);
                 Delay_ms(15); //Per specification of the charger software
             }
@@ -276,7 +284,6 @@ void EventHandler1(char event)
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
         T0CON.TMR0ON = 0;
-        //LATB.RB1 = 1;
 
         StartDirectedAdvertisement();
     }
@@ -293,17 +300,11 @@ void EventHandler2(char event)
         relayToCharger = 0;
         received = ReadBuffer2();
 
-        //LATB.RB7 = 1;
         TerminalWrite(received);
         TerminalWrite('\n');
         sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
-        //TerminalWriteText(buffer);
 
         BTSendCommand(buffer);
-        //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
-
-        //TerminalWrite(*received);
-
     }
 }
 
@@ -317,63 +318,17 @@ void InitCharger()
 
 void InitTerminal()
 {
-    Soft_UART_Init(&LATC, 5, 4, 2400, 0);
-    Delay_ms(100);
+	#ifdef DEBUG
+	    Soft_UART_Init(&LATC, 5, 4, 2400, 0);
+	    Delay_ms(100);
+    #endif
 }
-
-/*
-void ChargerTest()
-{
-    char error;
-    char msg;
-    int i = 0;
-
-    InitPorts();
-    InitTerminal();
-    InitCharger();
-
-    TerminalWriteText("Begin\n");
-
-    ChargerWriteByte(c_cmd_ee_addr_high | writeReg);
-    Delay_ms(100);
-    ChargerWriteByte(0x00);
-    Delay_ms(100);
-    ChargerWriteByte(c_cmd_ee_addr_low | writeReg);
-    Delay_ms(100);
-    ChargerWriteByte(0x01);
-    Delay_ms(100);
-    ChargerWriteByte(c_cmd_ee_data_high | readReg);
-    Delay_ms(100);
-
-    LATB.RB0 = 1;
-
-    while (1)
-    {
-        if (ChargerDataReady())
-        {
-            TerminalWrite(ChargerRead());
-            break;
-        }
-    }
-
-    ChargerWriteByte(c_cmd_ee_data_low | readReg);
-    Delay_ms(100);
-
-    LATB.RB2 = 1;
-
-    while (1)
-    {
-        if (ChargerDataReady())
-        {
-            TerminalWrite(ChargerRead());
-            break;
-        }
-    }
-}
-*/
 
 void main() {
     char event;
+
+    //Setup internal oscillator
+    OSCCON = 0x62;
 
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
 
@@ -383,8 +338,6 @@ void main() {
     InitTerminal();
     InitCharger();
     InitBT();
-
-    //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
 
     //Start timer
     T0CON.TMR0ON = 1;

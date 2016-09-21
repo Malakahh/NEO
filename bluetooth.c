@@ -3,23 +3,6 @@
 
 char directedAdvertisement = 1;
 
-/*
-void FirmwareUpgradeSetup()
-{
-    BTSendCommand("+\r");           //Echo on
-    BTSendCommand("sf,2\r");        //Complete factory reset
-    BTSendCommand("r,1\r");
-    Delay_ms(250);
-    BTSendCommand("sr,10008000\r"); //Support MLDP, enable OTA (peripheral mode is enabled by default)
-    BTSendCommand("r,1\r");         //reboot to apply settings
-
-    //Wait for "CMD"
-    Delay_ms(2500);
-
-    BTSendCommand("a\r");           //Start advertising
-}
-*/
-
 unsigned long GetStoredBaud()
 {
 	int i,k;
@@ -116,7 +99,9 @@ void InitBT()
 	UART1_Init(BT_UART_Baud);
 	Delay_ms(100);
 
+	LATB.RB0 = 1;
 	//BTFactoryReset();
+	LATB.RB1 = 1;
 
 	BTSendCommand("s-,NEO\r");
 
@@ -124,19 +109,9 @@ void InitBT()
 
 	BTReboot();
 
-	StartUndirectedAdvertisement();
-
-
-	//BTSendCommand("gdf\r");
-
-	
+	StartUndirectedAdvertisement();	
 }
-/*
-void BTSendCommand(char *cmd)
-{
-	UART1_Write_Text(cmd);
-}
-*/
+
 void BTReboot()
 {
 	BTSendCommand("r,1\r");
@@ -156,11 +131,19 @@ void BTCmdMode(char enter)
 {
 	if (enter)
 	{
-		LATE.RE1 = 1;
+		#ifdef DEBUG
+			LATE.RE1 = 1;
+		#else
+			LATC.RC1 = 1;
+		#endif
 	}
 	else
 	{
-		LATE.RE1 = 0;
+		#ifdef DEBUG
+			LATE.RE1 = 0;
+		#else
+			LATC.RC1 = 0;
+		#endif
 	}
 
 	Delay_ms(150);
