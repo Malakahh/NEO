@@ -254,7 +254,7 @@ void EventHandler1(char event)
             if (hexParserByetCnt == 2)
             {
                 hexParserByetCnt = 0;
-                TerminalWrite(parsedHex);
+                //TerminalWrite(parsedHex);
                 ChargerWriteByte(parsedHex);
                 Delay_ms(15); //Per specification of the charger software
             }
@@ -294,9 +294,10 @@ void EventHandler2(char event)
         received = ReadBuffer2();
 
         //LATB.RB7 = 1;
+        TerminalWrite(received);
         TerminalWrite('\n');
         sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
-        TerminalWriteText(buffer);
+        //TerminalWriteText(buffer);
 
         BTSendCommand(buffer);
         //BTSendCommand("suw,1d4b745a5a5411e68b7786f30ca893d3,AAAABAAAABAAAABAAAAB\r");
