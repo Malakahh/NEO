@@ -1,5 +1,6 @@
 #include "bluetooth.h"
 #include "events.h"
+#include "globals.h"
 
 char directedAdvertisement = 1;
 
@@ -99,9 +100,7 @@ void InitBT()
 	UART1_Init(BT_UART_Baud);
 	Delay_ms(100);
 
-	LATB.RB0 = 1;
 	//BTFactoryReset();
-	LATB.RB1 = 1;
 
 	BTSendCommand("s-,NEO\r");
 

@@ -66,15 +66,6 @@ void InitPorts()
 	#ifdef DEBUG
 		ANSELC = 0;
 	    ANSELB = 0;
-
-	    TRISB = 0;
-	    TRISC = 0x08;
-
-	    LATB = 0x00;
-	    LATC = 0x00;
-	#else
-		ANSELC = 0;
-	    ANSELB = 0;
 	    ANSELD = 0;
 
 	    TRISB = 0;
@@ -84,6 +75,19 @@ void InitPorts()
 	    LATB = 0x00;
 	    LATC = 0x00;
 	    LATE = 0x00;
+	    
+	    LATB.RB0 = 1;
+	#else
+		ANSELC = 0;
+	    ANSELB = 0;
+
+	    TRISB = 0;
+	    TRISC = 0x08;
+
+	    LATB = 0x00;
+	    LATC = 0x00;
+
+	    LATB.RB1 = 1;
     #endif
 }
 
