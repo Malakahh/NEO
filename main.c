@@ -32,33 +32,29 @@ char relayToCharger = 0;
 
 void TerminalWrite(char msg)
 {
-	#ifdef DEBUG
-	    RC1IE_bit = 0;
-	    RC2IE_bit = 0;
+    RC1IE_bit = 0;
+    RC2IE_bit = 0;
 
-	    Soft_UART_Write(msg);
+    Soft_UART_Write(msg);
 
-	    RC1IE_bit = 1;
-	    RC2IE_bit = 1;
-    #endif
+    RC1IE_bit = 1;
+    RC2IE_bit = 1;
 }
 
 void TerminalWriteText(char *msg)
 {
-	#ifdef DEBUG
-	    int i;
+    int i;
 
-	    RC1IE_bit = 0;
-	    RC2IE_bit = 0;
+    RC1IE_bit = 0;
+    RC2IE_bit = 0;
 
-	    for (i = 0; i < strlen(msg); i++)
-	    {
-	        TerminalWrite(msg[i]);
-	    }
+    for (i = 0; i < strlen(msg); i++)
+    {
+        TerminalWrite(msg[i]);
+    }
 
-	    RC1IE_bit = 1;
-	    RC2IE_bit = 1;
-    #endif
+    RC1IE_bit = 1;
+    RC2IE_bit = 1;
 }
 
 void InitPorts()
@@ -148,7 +144,7 @@ void WriteBuffer2()
 char ReadBuffer1()
 {
     char ret = *UART1BufferReadItr++;
-    
+
     if (UART1BufferReadItr >= UART1Buffer + UART1_BUFFER_SIZE)
     {
         UART1BufferReadItr = UART1Buffer;
@@ -255,6 +251,8 @@ void EventHandler1(char event)
 
         if (parsedHex == '|')
         {
+        	LATB.RB5 = !LATB.RB5;
+        	TerminalWrite(parsedHex);
             relayToCharger = !relayToCharger;
             hexParserByetCnt = 0;
             return;
@@ -266,6 +264,7 @@ void EventHandler1(char event)
 
             if (hexParserByetCnt == 2)
             {
+            	TerminalWrite(parsedHex);
                 hexParserByetCnt = 0;
                 ChargerWriteByte(parsedHex);
                 Delay_ms(15); //Per specification of the charger software
@@ -304,8 +303,8 @@ void EventHandler2(char event)
         relayToCharger = 0;
         received = ReadBuffer2();
 
-        TerminalWrite(received);
-        TerminalWrite('\n');
+        //TerminalWrite(received);
+        //TerminalWrite('\n');
         sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
 
         BTSendCommand(buffer);
@@ -322,17 +321,17 @@ void InitCharger()
 
 void InitTerminal()
 {
-	#ifdef DEBUG
-	    Soft_UART_Init(&LATC, 5, 4, 2400, 0);
-	    Delay_ms(100);
-    #endif
+    Soft_UART_Init(&LATC, 5, 4, 2400, 0);
+    Delay_ms(100);
 }
 
 void main() {
     char event;
 
-    //Setup internal oscillator
-    OSCCON = 0x62;
+    #ifndef DEbUG
+    	//Setup internal oscillator
+    	OSCCON = 0x62;
+    #endif
 
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
 
