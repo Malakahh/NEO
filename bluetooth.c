@@ -6,7 +6,7 @@ char directedAdvertisement = 1;
 
 unsigned long GetStoredBaud()
 {
-	int i = 0;
+	int i;
 	unsigned long res = 0;
 
 	for (i = 0; i < 4; i++)
@@ -20,7 +20,7 @@ unsigned long GetStoredBaud()
 
 void SetStoredBaud(unsigned long baud)
 {
-	int i = 0;
+	int i;
 
 	for (i = 0; i < 4; i++)
 	{

@@ -43,7 +43,7 @@ void TerminalWrite(char msg)
 
 void TerminalWriteText(char *msg)
 {
-    int i = 0;
+    int i;
 
     RC1IE_bit = 0;
     RC2IE_bit = 0;
@@ -192,9 +192,8 @@ void interrupt()
 
 char FindInBuffer(char *msg, char msgLength, char searchLength)
 {
-    char searchItr = 0;
-    char msgItr = 0;
-    char found = 1;
+    char searchItr, msgItr;
+    char found;
 
     for (searchItr = 0; searchItr < searchLength - msgLength; searchItr++)
     {
@@ -218,7 +217,7 @@ char FindInBuffer(char *msg, char msgLength, char searchLength)
 char ParseHex()
 {
     char byte[2];
-    memset(byte, 0xFF, 2);
+    memset(byte, 0x00, 2);
 
     if (UART1BufferReadItr == UART1Buffer)
     {
@@ -243,8 +242,8 @@ char ParseHex()
 
 void EventHandler1(char event)
 {
-    char received = 0xFF;
-    char parsedHex = 0xFF;
+    char received;
+    char parsedHex;
 
     if (event == ON_UART1_RECEIVE)
     {
@@ -254,9 +253,7 @@ void EventHandler1(char event)
         if (parsedHex == '|')
         {
         	LATB.RB5 = !LATB.RB5;
-        	TerminalWrite('n');
         	TerminalWrite(parsedHex);
-        	TerminalWrite('\n');
             relayToCharger = !relayToCharger;
             hexParserByetCnt = 0;
             return;
@@ -268,15 +265,9 @@ void EventHandler1(char event)
 
             if (hexParserByetCnt == 2)
             {
-            	TerminalWrite('n');
             	TerminalWrite(parsedHex);
-            	TerminalWrite('\n');
                 hexParserByetCnt = 0;
-                UART2_Read();
-                LATB.RB6 = 1;
-                UART2_Write(parsedHex);
-                //UART2_Write(0x87);
-                LATB.RB7 = 1;
+                ChargerWriteByte(parsedHex);
                 Delay_ms(15); //Per specification of the charger software
             }
         }
@@ -304,9 +295,9 @@ void EventHandler1(char event)
 
 void EventHandler2(char event)
 {
-    char received = 0xFF;
+    char received;
     char buffer[60];
-    memset(buffer, 0xFF, 60);
+    memset(buffer, 0x00, 60);
 
     if (event == ON_UART2_RECEIVE)
     {
@@ -338,7 +329,7 @@ void InitTerminal()
 }
 
 void main() {
-    char event = 0xFF;
+    char event;
 
     #ifndef DEBUG
     	//Setup internal oscillator
