@@ -6,7 +6,7 @@ char directedAdvertisement = 1;
 
 unsigned long GetStoredBaud()
 {
-	int i,k;
+	int i = 0;
 	unsigned long res = 0;
 
 	for (i = 0; i < 4; i++)
@@ -20,7 +20,7 @@ unsigned long GetStoredBaud()
 
 void SetStoredBaud(unsigned long baud)
 {
-	int i;
+	int i = 0;
 
 	for (i = 0; i < 4; i++)
 	{
@@ -70,9 +70,8 @@ void SetupPrivateServices()
 
 void InitBT()
 {
-	unsigned long previousBaud;
+	unsigned long previousBaud = GetStoredBaud();
 
-	previousBaud = GetStoredBaud();
 	if (previousBaud == BT_UART_Baud_Default || previousBaud == 0xFFFFFFFF)
 	{
 		//LATB.RB0 = 1;

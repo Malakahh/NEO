@@ -43,7 +43,7 @@ void TerminalWrite(char msg)
 
 void TerminalWriteText(char *msg)
 {
-    int i;
+    int i = 0;
 
     RC1IE_bit = 0;
     RC2IE_bit = 0;
@@ -60,6 +60,10 @@ void TerminalWriteText(char *msg)
 void InitPorts()
 {
 	#ifdef DEBUG
+	    LATB = 0x00;
+	    LATC = 0x00;
+	    LATE = 0x00;
+
 		ANSELC = 0;
 	    ANSELB = 0;
 	    ANSELD = 0;
@@ -67,21 +71,17 @@ void InitPorts()
 	    TRISB = 0;
 	    TRISC = 0x08;
 	    TRISE = 0;
-
-	    LATB = 0x00;
-	    LATC = 0x00;
-	    LATE = 0x00;
 	    
 	    LATB.RB0 = 1;
 	#else
+	    LATB = 0x00;
+	    LATC = 0x00;
+
 		ANSELC = 0;
 	    ANSELB = 0;
 
 	    TRISB = 0;
 	    TRISC = 0x08;
-
-	    LATB = 0x00;
-	    LATC = 0x00;
 
 	    LATB.RB1 = 1;
     #endif
@@ -192,8 +192,9 @@ void interrupt()
 
 char FindInBuffer(char *msg, char msgLength, char searchLength)
 {
-    char searchItr, msgItr;
-    char found;
+    char searchItr = 0;
+    char msgItr = 0;
+    char found = 1;
 
     for (searchItr = 0; searchItr < searchLength - msgLength; searchItr++)
     {
@@ -217,6 +218,7 @@ char FindInBuffer(char *msg, char msgLength, char searchLength)
 char ParseHex()
 {
     char byte[2];
+    memset(byte, 0xFF, 2);
 
     if (UART1BufferReadItr == UART1Buffer)
     {
@@ -241,8 +243,8 @@ char ParseHex()
 
 void EventHandler1(char event)
 {
-    char received;
-    char parsedHex;
+    char received = 0xFF;
+    char parsedHex = 0xFF;
 
     if (event == ON_UART1_RECEIVE)
     {
@@ -252,7 +254,9 @@ void EventHandler1(char event)
         if (parsedHex == '|')
         {
         	LATB.RB5 = !LATB.RB5;
+        	TerminalWrite('n');
         	TerminalWrite(parsedHex);
+        	TerminalWrite('\n');
             relayToCharger = !relayToCharger;
             hexParserByetCnt = 0;
             return;
@@ -264,9 +268,15 @@ void EventHandler1(char event)
 
             if (hexParserByetCnt == 2)
             {
+            	TerminalWrite('n');
             	TerminalWrite(parsedHex);
+            	TerminalWrite('\n');
                 hexParserByetCnt = 0;
-                ChargerWriteByte(parsedHex);
+                UART2_Read();
+                LATB.RB6 = 1;
+                UART2_Write(parsedHex);
+                //UART2_Write(0x87);
+                LATB.RB7 = 1;
                 Delay_ms(15); //Per specification of the charger software
             }
         }
@@ -294,8 +304,9 @@ void EventHandler1(char event)
 
 void EventHandler2(char event)
 {
-    char received;
+    char received = 0xFF;
     char buffer[60];
+    memset(buffer, 0xFF, 60);
 
     if (event == ON_UART2_RECEIVE)
     {
@@ -303,8 +314,9 @@ void EventHandler2(char event)
         relayToCharger = 0;
         received = ReadBuffer2();
 
-        //TerminalWrite(received);
-        //TerminalWrite('\n');
+        TerminalWrite('u');
+        TerminalWrite(received);
+        TerminalWrite('\n');
         sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
 
         BTSendCommand(buffer);
@@ -326,14 +338,15 @@ void InitTerminal()
 }
 
 void main() {
-    char event;
+    char event = 0xFF;
 
-    #ifndef DEbUG
+    #ifndef DEBUG
     	//Setup internal oscillator
     	OSCCON = 0x62;
     #endif
 
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
+    memset(UART2Buffer, 0xFF, UART2_BUFFER_SIZE);
 
     InitPorts();
     InitEvents();
@@ -341,6 +354,9 @@ void main() {
     InitTerminal();
     InitCharger();
     InitBT();
+
+    //Synchronie with charger to prevent corruption on power on
+    ChargerWriteByte(0x3F);
 
     //Start timer
     T0CON.TMR0ON = 1;
