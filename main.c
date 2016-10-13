@@ -243,7 +243,7 @@ void OnEvent_ON_UART1_RECEIVE()
 	char received = ReadBuffer1();
 	char parsedHex = ParseHex();
 
-    if (parsedHex == '|' && relayToCharger == 0)
+    if (relayToCharger == 0 && parsedHex == '|')
     {
     	TerminalWrite('n');
     	TerminalWrite(parsedHex);
@@ -270,6 +270,9 @@ void OnEvent_ON_UART1_RECEIVE()
     else if (relayToCharger == -1)
     {
     	relayToCharger = received;
+    	TerminalWrite('n');
+    	TerminalWrite(relayToCharger);
+    	TerminalWrite('\n');
     }
     else if (received == '\n')
     {
