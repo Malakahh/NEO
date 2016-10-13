@@ -28,7 +28,7 @@ int time = 0;
 char connectionEstablished = 0;
 char hexParserByetCnt = 0;
 char currentEventQueue = 1;
-char relayToCharger = 0;
+unsigned char relayToCharger = 0;
 
 void TerminalWrite(char msg)
 {
@@ -238,83 +238,93 @@ char ParseHex()
     return xtoi(byte);
 }
 
-
-
-void EventHandler1(char event)
+void OnEvent_ON_UART1_RECEIVE()
 {
-    char received;
-    char parsedHex;
+	char received = ReadBuffer1();
+	char parsedHex = ParseHex();
 
+    if (parsedHex == '|' && relayToCharger == 0)
+    {
+    	TerminalWrite('n');
+    	TerminalWrite(parsedHex);
+    	TerminalWrite('\n');
+        relayToCharger = -1;
+        hexParserByetCnt = 0;
+        return;
+    }
+    else if (relayToCharger > 0)
+    {
+        hexParserByetCnt++;
+        relayToCharger--;
+
+        if (hexParserByetCnt == 2)
+        {
+        	TerminalWrite('n');
+        	TerminalWrite(parsedHex);
+        	TerminalWrite('\n');
+            hexParserByetCnt = 0;
+            ChargerWriteByte(parsedHex);
+            Delay_ms(15); //Per specification of the charger software
+        }
+    }
+    else if (relayToCharger == -1)
+    {
+    	relayToCharger = received;
+    }
+    else if (received == '\n')
+    {
+        if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
+        {
+            T0CON.TMR0ON = 0;
+            connectionEstablished = 1;
+        }
+        else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
+        {
+            connectionEstablished = 0;
+            StartDirectedAdvertisement();
+        }
+    }
+}
+
+void OnEvent_ON_UART2_RECEIVE()
+{
+	char received = ReadBuffer2();
+    char buffer[60];
+	memset(buffer, 0x00, 60);
+    hexParserByetCnt = 0;
+    relayToCharger = 0;
+
+    TerminalWrite('u');
+    TerminalWrite(received);
+    TerminalWrite('\n');
+    sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
+
+    BTSendCommand(buffer);
+}
+
+void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
+{
+	T0CON.TMR0ON = 0;
+
+    StartDirectedAdvertisement();
+}
+
+//Message structure <START BYTE><NUMBER OF BYTES TO RECEIVE><DATA>, example: |01FF
+void EventHandler(char event)
+{
     if (event == ON_UART1_RECEIVE)
     {
-        received = ReadBuffer1();
-        parsedHex = ParseHex();
-
-        if (parsedHex == '|')
-        {
-        	LATB.RB5 = !LATB.RB5;
-        	TerminalWrite(parsedHex);
-            relayToCharger = !relayToCharger;
-            hexParserByetCnt = 0;
-            return;
-        }
-
-        if (relayToCharger)
-        {
-            hexParserByetCnt++;
-
-            if (hexParserByetCnt == 2)
-            {
-            	TerminalWrite(parsedHex);
-                hexParserByetCnt = 0;
-                ChargerWriteByte(parsedHex);
-                Delay_ms(15); //Per specification of the charger software
-            }
-        }
-        else if (received == '\n')
-        {
-            if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
-            {
-                T0CON.TMR0ON = 0;
-                connectionEstablished = 1;
-            }
-            else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
-            {
-                connectionEstablished = 0;
-                StartDirectedAdvertisement();
-            }
-        }
+        OnEvent_ON_UART1_RECEIVE();
+    }
+    else if (event == ON_UART2_RECEIVE)
+    {
+    	OnEvent_ON_UART2_RECEIVE();
     }
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
-        T0CON.TMR0ON = 0;
-
-        StartDirectedAdvertisement();
+        OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED();
     }
 }
-
-void EventHandler2(char event)
-{
-    char received;
-    char buffer[60];
-    memset(buffer, 0x00, 60);
-
-    if (event == ON_UART2_RECEIVE)
-    {
-        hexParserByetCnt = 0;
-        relayToCharger = 0;
-        received = ReadBuffer2();
-
-        TerminalWrite('u');
-        TerminalWrite(received);
-        TerminalWrite('\n');
-        sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
-
-        BTSendCommand(buffer);
-    }
-}
-
-
 
 void InitCharger()
 {
@@ -363,7 +373,7 @@ void main() {
                 continue;
             }
 
-            EventHandler1(event);
+            EventHandler(event);
         }
         else if (currentEventQueue == 2)
         {
@@ -374,7 +384,7 @@ void main() {
                 continue;
             }
 
-            EventHandler2(event);
+            EventHandler(event);
         }
         
     }
