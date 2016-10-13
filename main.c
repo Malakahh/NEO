@@ -5,14 +5,7 @@
 #define UART1_BUFFER_SIZE 100
 #define UART2_BUFFER_SIZE 150
 
-#define writeReg 0x80
-#define readReg 0x00
-#define writeEEprom 0x40
-#define readEEprom 0x00
-#define c_cmd_ee_data_high 0x05
-#define c_cmd_ee_data_low 0x06
-#define c_cmd_ee_addr_high 0x07
-#define c_cmd_ee_addr_low 0x08
+#define START_BYTE '|'
 
 #define ChargerWriteByte UART2_Write
 
@@ -243,7 +236,7 @@ void OnEvent_ON_UART1_RECEIVE()
 	char received = ReadBuffer1();
 	char parsedHex = ParseHex();
 
-    if (relayToCharger == 0 && parsedHex == '|')
+    if (relayToCharger == 0 && parsedHex == START_BYTE)
     {
     	TerminalWrite('n');
     	TerminalWrite(parsedHex);
