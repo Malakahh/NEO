@@ -2,10 +2,12 @@
 #include "bluetooth.h"
 #include "events.h"
 
-#define UART1_BUFFER_SIZE 100
-#define UART2_BUFFER_SIZE 150
+#define UART1_BUFFER_SIZE 150
+#define UART2_BUFFER_SIZE 100
 
 #define START_BYTE '|'
+#define CHECKSUM_LENGTH_BYTES 4
+#define DATA_MAX_LENGTH 4
 
 #define ChargerWriteByte UART2_Write
 
@@ -20,8 +22,12 @@ char *UART2BufferReadItr = UART2Buffer;
 int time = 0;
 char connectionEstablished = 0;
 char hexParserByetCnt = 0;
-char currentEventQueue = 1;
+
 signed char relayToCharger = 0;
+char readingChecksum = 0;
+char checksum[CHECKSUM_LENGTH_BYTES];
+char msgToRelay[DATA_MAX_LENGTH];
+char *msgToRelayItr = msgToRelay;
 
 void TerminalWrite(char msg)
 {
@@ -231,9 +237,9 @@ char ParseHex()
     return xtoi(byte);
 }
 
-//Message structure <START BYTE><NUMBER OF BYTES TO RECEIVE><DATA>, example: |01FF
 void OnEvent_ON_UART1_RECEIVE()
 {
+	int i;
 	char received = ReadBuffer1();
 	char parsedHex = ParseHex();
 
@@ -253,24 +259,47 @@ void OnEvent_ON_UART1_RECEIVE()
         {
         	hexParserByetCnt = 0;
 	    	relayToCharger = parsedHex;
+	    	readingChecksum = 0;
+	    	msgToRelayItr = msgToRelay;
 
 	    	// TerminalWrite(relayToCharger);
 	    	// TerminalWrite('\n');
 	    }
     }
-    else if (relayToCharger > 0)
+    else if (msgToRelayItr < msgToRelay + relayToCharger && relayToCharger != 0)
     {
         hexParserByetCnt++;
         
         if (hexParserByetCnt == 2)
         {
-        	// TerminalWrite(parsedHex);
-        	// TerminalWrite('\n');
+        	if (readingChecksum < CHECKSUM_LENGTH_BYTES)
+        	{
+        		//Reading checksum
+        		checksum[readingChecksum++] = parsedHex;
+        	}
+        	else
+        	{
+        		//Reading msg
+        		msgToRelay[msgToRelayItr++] = parsedHex;
 
-        	relayToCharger--;
+        		//Final byte of msg read
+        		if (msgToRelayItr == msgToRelay + relayToCharger)
+        		{
+
+        			//TODO: Verify checksum
+
+
+        			for (int i = 0; i < msgToRelayItr; i++)
+        			{
+        				ChargerWriteByte(msgToRelay[i]);
+            			Delay_ms(15); //Per specification of the charger software
+        			}
+
+        			relayToCharger = 0;
+        		}
+        	}
+			
             hexParserByetCnt = 0;
-            ChargerWriteByte(parsedHex);
-            Delay_ms(15); //Per specification of the charger software
         }
     }
     else if (received == '\n')
@@ -367,27 +396,6 @@ void main() {
 
     while (1)
     {
-        // if (currentEventQueue == 1)
-        // {
-        //     event = DequeueEvent1();
-        //     if (event == NO_EVENT)
-        //     {
-        //         currentEventQueue = 2;
-        //         continue;
-        //     }
-        // }
-        // else if (currentEventQueue == 2)
-        // {
-        //     event = DequeueEvent2();
-        //     if (event == NO_EVENT)
-        //     {
-        //         currentEventQueue = 1;
-        //         continue;
-        //     }
-        // }
-        
-        // EventHandler(event);
-
         EventHandler(DequeueEvent());
     }
 }
