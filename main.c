@@ -23,7 +23,7 @@ int time = 0;
 char connectionEstablished = 0;
 char hexParserByetCnt = 0;
 
-signed char relayToCharger = 0;
+signed char byteCntToRead = 0;
 char readingChecksum = 0;
 char checksum[CHECKSUM_LENGTH_BYTES];
 char msgToRelay[DATA_MAX_LENGTH];
@@ -112,31 +112,41 @@ void InitInterrupts()
     T0CON.TMR0ON = 0;       // Clear interrupt flag
 }
 
-void WriteBuffer1()
+void WriteBuffer1(char c)
+{
+	*UART1BufferWriteItr++ = c;
+
+    QueueEvent(ON_UART1_RECEIVE);
+
+    //Bounds
+    if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
+        UART1BufferWriteItr = UART1Buffer;
+}
+
+void WriteBuffer1FromUART()
 {
     if (UART1_Data_Ready() == 1)
     {
-        *UART1BufferWriteItr++ = UART1_Read();
-
-        QueueEvent(ON_UART1_RECEIVE);
-
-        //Bounds
-        if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
-            UART1BufferWriteItr = UART1Buffer;
+        WriteBuffer1(UART1_Read());
     }
 }
 
-void WriteBuffer2()
+void WriteBuffer2(char c)
+{
+	*UART2BufferWriteItr++ = c;
+
+    QueueEvent(ON_UART2_RECEIVE);
+
+    //Bounds
+    if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
+        UART2BufferWriteItr = UART2Buffer;
+}
+
+void WriteBuffer2FromUART()
 {
     if (UART2_Data_Ready() == 1)
     {
-        *UART2BufferWriteItr++ = UART2_Read();
-
-        QueueEvent(ON_UART2_RECEIVE);
-
-        //Bounds
-        if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
-            UART2BufferWriteItr = UART2Buffer;
+        WriteBuffer2(UART2_Read());
     }
 }
 
@@ -168,12 +178,12 @@ void interrupt()
 {
     if (RC1IF_bit == 1) //UART1 receive
     {
-        WriteBuffer1();
+        WriteBuffer1FromUART();
     }
 
     if (RC2IF_bit == 1) //UART2 receive
     {
-        WriteBuffer2();
+        WriteBuffer2FromUART();
     }
 
     if (connectionEstablished == 0 && INTCON.TMR0IF == 1)
@@ -237,36 +247,52 @@ char ParseHex()
     return xtoi(byte);
 }
 
+char ValidateChecksum()
+{
+	unsigned long newChkSum = CRC32_Tab(msgToRelay, byteCntToRead, -1);
+	unsigned long control = 0;
+	int i;
+
+	for (i = 0; i < CHECKSUM_LENGTH_BYTES; i++)
+	{
+		control = control | (checksum[i] << 8 * i);
+	}
+
+	return newChkSum == control;
+}
+
 void OnEvent_ON_UART1_RECEIVE()
 {
 	int i;
 	char received = ReadBuffer1();
 	char parsedHex = ParseHex();
 
-    if (relayToCharger == 0 && parsedHex == START_BYTE)
+    if (byteCntToRead == 0 && parsedHex == START_BYTE) //New msg received
     {
     	// TerminalWrite(parsedHex);
     	// TerminalWrite('\n');
 
-        relayToCharger = -1;
+        byteCntToRead = -1;
         hexParserByetCnt = 0;
     }
-    else if (relayToCharger == -1)
+    else if (byteCntToRead == -1) //Read byteCount
     {
     	hexParserByetCnt++;
 
     	if (hexParserByetCnt == 2)
         {
+	    	byteCntToRead = parsedHex;
+
+	    	//Reset stuff
         	hexParserByetCnt = 0;
-	    	relayToCharger = parsedHex;
 	    	readingChecksum = 0;
 	    	msgToRelayItr = msgToRelay;
 
-	    	// TerminalWrite(relayToCharger);
+	    	// TerminalWrite(byteCntToRead);
 	    	// TerminalWrite('\n');
 	    }
     }
-    else if (msgToRelayItr < msgToRelay + relayToCharger && relayToCharger != 0)
+    else if (msgToRelayItr < msgToRelay + byteCntToRead && byteCntToRead != 0) //Read msg
     {
         hexParserByetCnt++;
         
@@ -280,22 +306,23 @@ void OnEvent_ON_UART1_RECEIVE()
         	else
         	{
         		//Reading msg
-        		msgToRelay[msgToRelayItr++] = parsedHex;
+        		*msgToRelayItr++ = parsedHex;
 
         		//Final byte of msg read
-        		if (msgToRelayItr == msgToRelay + relayToCharger)
+        		if (msgToRelayItr == msgToRelay + byteCntToRead)
         		{
-
-        			//TODO: Verify checksum
-
-
-        			for (int i = 0; i < msgToRelayItr; i++)
+        			if (ValidateChecksum())
         			{
-        				ChargerWriteByte(msgToRelay[i]);
-            			Delay_ms(15); //Per specification of the charger software
+        				WriteBuffer2(START_BYTE);
+
+        				for (i = 0; i < msgToRelayItr; i++)
+	        			{
+	        				ChargerWriteByte(msgToRelay[i]);
+	            			Delay_ms(15); //Per specification of the charger software
+	        			}
         			}
 
-        			relayToCharger = 0;
+        			byteCntToRead = 0;
         		}
         	}
 			
