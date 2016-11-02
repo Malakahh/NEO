@@ -21,7 +21,7 @@ int time = 0;
 char connectionEstablished = 0;
 char hexParserByetCnt = 0;
 char currentEventQueue = 1;
-unsigned char relayToCharger = 0;
+signed char relayToCharger = 0;
 
 void TerminalWrite(char msg)
 {
@@ -112,7 +112,7 @@ void WriteBuffer1()
     {
         *UART1BufferWriteItr++ = UART1_Read();
 
-        QueueEvent1(ON_UART1_RECEIVE);
+        QueueEvent(ON_UART1_RECEIVE);
 
         //Bounds
         if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
@@ -126,7 +126,7 @@ void WriteBuffer2()
     {
         *UART2BufferWriteItr++ = UART2_Read();
 
-        QueueEvent2(ON_UART2_RECEIVE);
+        QueueEvent(ON_UART2_RECEIVE);
 
         //Bounds
         if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
@@ -178,7 +178,7 @@ void interrupt()
 
         if (time >= UNDIRECTED_ADVERTISEMENT_TIME)
         {
-            QueueEvent1(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
+            QueueEvent(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
         }
     } 
 }
@@ -231,6 +231,7 @@ char ParseHex()
     return xtoi(byte);
 }
 
+//Message structure <START BYTE><NUMBER OF BYTES TO RECEIVE><DATA>, example: |01FF
 void OnEvent_ON_UART1_RECEIVE()
 {
 	char received = ReadBuffer1();
@@ -238,34 +239,39 @@ void OnEvent_ON_UART1_RECEIVE()
 
     if (relayToCharger == 0 && parsedHex == START_BYTE)
     {
-    	TerminalWrite('n');
-    	TerminalWrite(parsedHex);
-    	TerminalWrite('\n');
+    	// TerminalWrite(parsedHex);
+    	// TerminalWrite('\n');
+
         relayToCharger = -1;
         hexParserByetCnt = 0;
-        return;
+    }
+    else if (relayToCharger == -1)
+    {
+    	hexParserByetCnt++;
+
+    	if (hexParserByetCnt == 2)
+        {
+        	hexParserByetCnt = 0;
+	    	relayToCharger = parsedHex;
+
+	    	// TerminalWrite(relayToCharger);
+	    	// TerminalWrite('\n');
+	    }
     }
     else if (relayToCharger > 0)
     {
         hexParserByetCnt++;
-        relayToCharger--;
-
+        
         if (hexParserByetCnt == 2)
         {
-        	TerminalWrite('n');
-        	TerminalWrite(parsedHex);
-        	TerminalWrite('\n');
+        	// TerminalWrite(parsedHex);
+        	// TerminalWrite('\n');
+
+        	relayToCharger--;
             hexParserByetCnt = 0;
             ChargerWriteByte(parsedHex);
             Delay_ms(15); //Per specification of the charger software
         }
-    }
-    else if (relayToCharger == -1)
-    {
-    	relayToCharger = received;
-    	TerminalWrite('n');
-    	TerminalWrite(relayToCharger);
-    	TerminalWrite('\n');
     }
     else if (received == '\n')
     {
@@ -285,17 +291,19 @@ void OnEvent_ON_UART1_RECEIVE()
 void OnEvent_ON_UART2_RECEIVE()
 {
 	char received = ReadBuffer2();
-    char buffer[60];
-	memset(buffer, 0x00, 60);
-    hexParserByetCnt = 0;
-    relayToCharger = 0;
+    char buffer[40];
+	memset(buffer, 0x00, 40);
 
-    TerminalWrite('u');
-    TerminalWrite(received);
-    TerminalWrite('\n');
+    // TerminalWrite('u');
+    // TerminalWrite(received);
+    // TerminalWrite('\n');
+
     sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
 
     BTSendCommand(buffer);
+
+    //Delay to allow for bluetooth notification to take place. Note that this is half the delay of UART1, due to possibly having to send two packets here.
+    Delay_ms(100);
 }
 
 void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
@@ -305,7 +313,6 @@ void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
     StartDirectedAdvertisement();
 }
 
-//Message structure <START BYTE><NUMBER OF BYTES TO RECEIVE><DATA>, example: |01FF
 void EventHandler(char event)
 {
     if (event == ON_UART1_RECEIVE)
@@ -360,28 +367,27 @@ void main() {
 
     while (1)
     {
-        if (currentEventQueue == 1)
-        {
-            event = DequeueEvent1();
-            if (event == NO_EVENT)
-            {
-                currentEventQueue = 2;
-                continue;
-            }
-
-            EventHandler(event);
-        }
-        else if (currentEventQueue == 2)
-        {
-            event = DequeueEvent2();
-            if (event == NO_EVENT)
-            {
-                currentEventQueue = 1;
-                continue;
-            }
-
-            EventHandler(event);
-        }
+        // if (currentEventQueue == 1)
+        // {
+        //     event = DequeueEvent1();
+        //     if (event == NO_EVENT)
+        //     {
+        //         currentEventQueue = 2;
+        //         continue;
+        //     }
+        // }
+        // else if (currentEventQueue == 2)
+        // {
+        //     event = DequeueEvent2();
+        //     if (event == NO_EVENT)
+        //     {
+        //         currentEventQueue = 1;
+        //         continue;
+        //     }
+        // }
         
+        // EventHandler(event);
+
+        EventHandler(DequeueEvent());
     }
 }
