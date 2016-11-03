@@ -277,7 +277,7 @@ char ValidateChecksum()
 	TerminalWrite(newChkSum);
 
 	TerminalWriteText("Control\n");
-	TerminalWriteText(&control);
+	TerminalWriteText(checksum);
 
 	return newChkSum == control;
 }
