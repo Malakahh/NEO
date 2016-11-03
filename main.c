@@ -374,7 +374,7 @@ void OnEvent_ON_UART2_RECEIVE()
 			(unsigned int)received,
 			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 1) & 0x000000FF),
 			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 2) & 0x000000FF),
-			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 3) & 0x000000FF)
+			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 3) & 0x000000FF),
 			(unsigned int)(newChkSum & 0x000000FF));
 	}    
 
