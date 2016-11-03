@@ -324,7 +324,7 @@ void OnEvent_ON_UART1_RECEIVE()
         		//Reading checksum
         		checksum[readingChecksum++] = parsedHex;
 
-        		TerminalWrite(parsedHex);
+        		//TerminalWrite(parsedHex);
         	}
         	else
         	{
