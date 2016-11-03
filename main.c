@@ -273,15 +273,20 @@ char ValidateChecksum()
 	if (newChkSum == control)
 	{
 		TerminalWriteText("Checksum == Control");
+		TerminalWrite(newChkSum);
+		TerminalWrite('\n');
+		TerminalWrite(control);
+		TerminalWrite('\n');
+		TerminalWrite('\n');
 	}
 	else
 	{
 		TerminalWriteText("Checksum != Control:\n");
 		TerminalWrite(newChkSum);
-		TerminalWrite("\n");
+		TerminalWrite('\n');
 		TerminalWrite(control);
-		TerminalWrite("\n");
-		TerminalWrite("\n");
+		TerminalWrite('\n');
+		TerminalWrite('\n');
 	}
 
 	return newChkSum == control;
