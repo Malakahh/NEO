@@ -284,7 +284,13 @@ char ValidateChecksum()
 		TerminalWriteText("Checksum != Control:\n");
 		TerminalWrite(newChkSum);
 		TerminalWrite('\n');
-		TerminalWrite(control);
+		TerminalWrite(checksum[0]);
+		TerminalWrite('\n');
+		TerminalWrite(checksum[1]);
+		TerminalWrite('\n');
+		TerminalWrite(checksum[2]);
+		TerminalWrite('\n');
+		TerminalWrite(checksum[3]);
 		TerminalWrite('\n');
 		TerminalWrite('\n');
 	}
