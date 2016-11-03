@@ -370,18 +370,15 @@ void OnEvent_ON_UART2_RECEIVE()
 	{
 		unsigned long newChkSum = CRC32_Tab(&received, 1, -1);
 
-		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r", 
-			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 1)),
-			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 2)),
-			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 3)),
-			(unsigned int)newChkSum,
+		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%08x%02x\r",
+			newChkSum,
 			(unsigned int)received);
 	}    
 
     BTSendCommand(buffer);
 
     //Delay to allow for bluetooth notification to take place. Note that this is half the delay of UART1, due to possibly having to send two packets here.
-    Delay_ms(50);
+    //Delay_ms(50);
 }
 
 void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
