@@ -206,7 +206,7 @@ void interrupt()
 
         if (time >= UNDIRECTED_ADVERTISEMENT_TIME)
         {
-            QueueEvent(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
+            QueueEventFromUART(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
         }
     } 
 }
