@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=events.c
+Value=main.c
 [USE_EEPROM]
 Value=0
 [USE_HEAP]
@@ -40,10 +40,11 @@ Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=3
+Count=4
 Path0=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Defs\
 Path1=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
 Path2=C:\GitRepos\NEO\
+Path3=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Packages\Crypto Library\Uses\
 [HEADER_PATH]
 Count=1
 Path0=C:\GitRepos\NEO\
@@ -55,7 +56,7 @@ File2=globals.h
 [PLDS]
 Count=0
 [Useses]
-Count=55
+Count=56
 File0=ADC
 File1=Button
 File2=CAN_SPI
@@ -111,6 +112,7 @@ File51=Time
 File52=TouchPanel
 File53=Trigonometry
 File54=UART
+File55=CRC
 [EXPANDED_NODES]
 Node0=Sources
 Count=1
