@@ -315,7 +315,7 @@ void OnEvent_ON_UART1_RECEIVE()
         			{
         				WriteBuffer2(START_BYTE);
 
-        				for (i = 0; i < msgToRelayItr; i++)
+        				for (i = 0; msgToRelay + i < msgToRelayItr; i++)
 	        			{
 	        				ChargerWriteByte(msgToRelay[i]);
 	            			Delay_ms(15); //Per specification of the charger software
