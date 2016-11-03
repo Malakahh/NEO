@@ -263,7 +263,7 @@ char ValidateChecksum()
 {
 	unsigned long newChkSum = CRC32_Tab(msgToRelay, byteCntToRead, -1);
 
-	unsigned long control = checksum[3]
+	unsigned long control = checksum[3];
 	control = control | checksum[0] << 8 * 3;
 	control = control | checksum[1] << 8 * 2;
 	control = control | checksum[2] << 8 * 1;
