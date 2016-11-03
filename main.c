@@ -270,6 +270,7 @@ char ValidateChecksum()
 		control = control | (checksum[i] << 8 * (CHECKSUM_LENGTH_BYTES - 1 - i));
 	}
 
+/*
 	if (newChkSum == control)
 	{
 		TerminalWriteText("Checksum == Control");
@@ -294,6 +295,7 @@ char ValidateChecksum()
 		TerminalWrite('\n');
 		TerminalWrite('\n');
 	}
+	*/
 
 	return newChkSum == control;
 }
@@ -339,6 +341,10 @@ void OnEvent_ON_UART1_RECEIVE()
         	{
         		//Reading checksum
         		checksum[readingChecksum++] = parsedHex;
+
+        		TerminalWrite(parsedHex);
+        		TerminalWrite('\n');
+        		TerminalWrite('\n');
         	}
         	else
         	{
