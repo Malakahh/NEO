@@ -270,32 +270,17 @@ char ValidateChecksum()
 		control = control | (checksum[i] << 8 * (CHECKSUM_LENGTH_BYTES - 1 - i));
 	}
 
-/*
-	if (newChkSum == control)
-	{
-		TerminalWriteText("Checksum == Control");
-		TerminalWrite(newChkSum);
-		TerminalWrite('\n');
-		TerminalWrite(control);
-		TerminalWrite('\n');
-		TerminalWrite('\n');
-	}
-	else
-	{
-		TerminalWriteText("Checksum != Control:\n");
-		TerminalWrite(newChkSum);
-		TerminalWrite('\n');
-		TerminalWrite(checksum[0]);
-		TerminalWrite('\n');
-		TerminalWrite(checksum[1]);
-		TerminalWrite('\n');
-		TerminalWrite(checksum[2]);
-		TerminalWrite('\n');
-		TerminalWrite(checksum[3]);
-		TerminalWrite('\n');
-		TerminalWrite('\n');
-	}
-	*/
+	TerminalWriteText("newChecksum\n");
+	TerminalWrite(newChkSum >> 8 * 3);
+	TerminalWrite(newChkSum >> 8 * 2);
+	TerminalWrite(newChkSum >> 8 * 1);
+	TerminalWrite(newChkSum);
+
+	TerminalWriteText("Control\n");
+	TerminalWrite(control >> 8 * 3);
+	TerminalWrite(control >> 8 * 2);
+	TerminalWrite(control >> 8 * 1);
+	TerminalWrite(control);
 
 	return newChkSum == control;
 }
