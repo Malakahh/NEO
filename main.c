@@ -359,8 +359,8 @@ void OnEvent_ON_UART1_RECEIVE()
 void OnEvent_ON_UART2_RECEIVE()
 {
 	char received = ReadBuffer2();
-    char buffer[44];
-	memset(buffer, 0x00, 44);
+    char buffer[43];
+	memset(buffer, 0x00, 43);
 
 	if (received == START_BYTE)
 	{
@@ -381,7 +381,7 @@ void OnEvent_ON_UART2_RECEIVE()
     BTSendCommand(buffer);
 
     //Delay to allow for bluetooth notification to take place. Note that this is half the delay of UART1, due to possibly having to send two packets here.
-    //Delay_ms(100);
+    Delay_ms(50);
 }
 
 void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
