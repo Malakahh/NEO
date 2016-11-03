@@ -129,7 +129,7 @@ void WriteBuffer1FromUART()
     {
         *UART1BufferWriteItr++ = UART1_Read();
 
-	    QueueEvent(ON_UART1_RECEIVE);
+	    QueueEventFromUART(ON_UART1_RECEIVE);
 
 	    //Bounds
 	    if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
@@ -154,7 +154,7 @@ void WriteBuffer2FromUART()
     {
         *UART2BufferWriteItr++ = UART2_Read();
 
-	    QueueEvent(ON_UART2_RECEIVE);
+	    QueueEventFromUART(ON_UART2_RECEIVE);
 
 	    //Bounds
 	    if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
