@@ -371,11 +371,11 @@ void OnEvent_ON_UART2_RECEIVE()
 		unsigned long newChkSum = CRC32_Tab(&received, 1, -1);
 
 		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r", 
-			(unsigned int)received,
-			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 1) & 0x000000FF),
-			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 2) & 0x000000FF),
-			(unsigned int)((newChkSum >> CHECKSUM_LENGTH_BYTES - 3) & 0x000000FF),
-			(unsigned int)(newChkSum & 0x000000FF));
+			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 1)),
+			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 2)),
+			(unsigned int)(newChkSum >> 8 * (CHECKSUM_LENGTH_BYTES - 3)),
+			(unsigned int)newChkSum,
+			(unsigned int)received);
 	}    
 
     BTSendCommand(buffer);
