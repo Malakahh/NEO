@@ -276,7 +276,12 @@ char ValidateChecksum()
 	}
 	else
 	{
-		TerminalWriteText("Checksum != Control");
+		TerminalWriteText("Checksum != Control:\n");
+		TerminalWrite(newChkSum);
+		TerminalWrite("\n");
+		TerminalWrite(control);
+		TerminalWrite("\n");
+		TerminalWrite("\n");
 	}
 
 	return newChkSum == control;
