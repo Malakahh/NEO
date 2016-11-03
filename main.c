@@ -275,7 +275,10 @@ char ValidateChecksum()
 	TerminalWrite(newChkSum);
 
 	TerminalWriteText("Control\n");
-	TerminalWriteText(checksum);
+	TerminalWrite(control >> 8 * 3);
+	TerminalWrite(control >> 8 * 2);
+	TerminalWrite(control >> 8 * 1);
+	TerminalWrite(control);
 
 	if (newChkSum == control)
 	{
