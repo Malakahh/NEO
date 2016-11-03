@@ -370,7 +370,7 @@ void OnEvent_ON_UART2_RECEIVE()
 	{
 		unsigned long newChkSum = CRC32_Tab(&received, 1, -1);
 
-		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%08x%02x\r",
+		sprintl(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%08x%02x\r",
 			newChkSum,
 			(unsigned int)received);
 	}    
