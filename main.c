@@ -268,23 +268,6 @@ char ValidateChecksum()
 	control = control | (unsigned long)checksum[1] << 8 * 2;
 	control = control | (unsigned long)checksum[2] << 8 * 1;
 
-	TerminalWriteText("newChecksum\n");
-	TerminalWrite(newChkSum >> 8 * 3);
-	TerminalWrite(newChkSum >> 8 * 2);
-	TerminalWrite(newChkSum >> 8 * 1);
-	TerminalWrite(newChkSum);
-
-	TerminalWriteText("Control\n");
-	TerminalWrite(control >> 8 * 3);
-	TerminalWrite(control >> 8 * 2);
-	TerminalWrite(control >> 8 * 1);
-	TerminalWrite(control);
-
-	if (newChkSum == control)
-	{
-		TerminalWriteText("They're equal motherfucker!\n\n");
-	}
-
 	return newChkSum == control;
 }
 
