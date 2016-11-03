@@ -270,6 +270,15 @@ char ValidateChecksum()
 		control = control | (checksum[i] << 8 * (CHECKSUM_LENGTH_BYTES - 1 - i));
 	}
 
+	if (newChkSum == control)
+	{
+		TerminalWriteText("Checksum == Control");
+	}
+	else
+	{
+		TerminalWriteText("Checksum != Control");
+	}
+
 	return newChkSum == control;
 }
 
