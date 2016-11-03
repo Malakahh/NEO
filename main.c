@@ -127,7 +127,13 @@ void WriteBuffer1FromUART()
 {
     if (UART1_Data_Ready() == 1)
     {
-        WriteBuffer1(UART1_Read());
+        *UART1BufferWriteItr++ = UART1_Read();
+
+	    QueueEvent(ON_UART1_RECEIVE);
+
+	    //Bounds
+	    if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
+	        UART1BufferWriteItr = UART1Buffer;
     }
 }
 
@@ -146,7 +152,13 @@ void WriteBuffer2FromUART()
 {
     if (UART2_Data_Ready() == 1)
     {
-        WriteBuffer2(UART2_Read());
+        *UART2BufferWriteItr++ = UART2_Read();
+
+	    QueueEvent(ON_UART2_RECEIVE);
+
+	    //Bounds
+	    if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
+	        UART2BufferWriteItr = UART2Buffer;
     }
 }
 
