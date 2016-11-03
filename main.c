@@ -262,13 +262,11 @@ char ParseHex()
 char ValidateChecksum()
 {
 	unsigned long newChkSum = CRC32_Tab(msgToRelay, byteCntToRead, -1);
-	unsigned long control = 0;
-	int i;
 
-	for (i = 0; i < CHECKSUM_LENGTH_BYTES; i++)
-	{
-		control = control | (checksum[i] << 8 * (CHECKSUM_LENGTH_BYTES - 1 - i));
-	}
+	unsigned long control = checksum[3]
+	control = control | checksum[0] << 8 * 3;
+	control = control | checksum[1] << 8 * 2;
+	control = control | checksum[2] << 8 * 1;
 
 	TerminalWriteText("newChecksum\n");
 	TerminalWrite(newChkSum >> 8 * 3);
@@ -278,6 +276,11 @@ char ValidateChecksum()
 
 	TerminalWriteText("Control\n");
 	TerminalWriteText(checksum);
+
+	if (newChkSum == control)
+	{
+		TerminalWriteText("They're equal motherfucker!\n\n");
+	}
 
 	return newChkSum == control;
 }
