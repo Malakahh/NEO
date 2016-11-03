@@ -255,7 +255,7 @@ char ValidateChecksum()
 
 	for (i = 0; i < CHECKSUM_LENGTH_BYTES; i++)
 	{
-		control = control | (checksum[i] << 8 * i);
+		control = control | (checksum[i] << 8 * (CHECKSUM_LENGTH_BYTES - 1 - i));
 	}
 
 	return newChkSum == control;
