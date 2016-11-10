@@ -268,7 +268,14 @@ char ValidateChecksum()
 	control = control | (unsigned long)checksum[1] << 8 * 2;
 	control = control | (unsigned long)checksum[2] << 8 * 1;
 
-	return newChkSum == control;
+	if (newChkSum == control)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 void OnEvent_ON_UART1_RECEIVE()
@@ -323,7 +330,7 @@ void OnEvent_ON_UART1_RECEIVE()
         		//Final byte of msg read
         		if (msgToRelayItr == msgToRelay + byteCntToRead)
         		{
-        			if (ValidateChecksum())
+        			if (ValidateChecksum() == 1)
         			{
         				WriteBuffer2(START_BYTE);
 
@@ -359,8 +366,8 @@ void OnEvent_ON_UART1_RECEIVE()
 void OnEvent_ON_UART2_RECEIVE()
 {
 	char received = ReadBuffer2();
-    char buffer[43];
-	memset(buffer, 0x00, 43);
+    char buffer[49];
+	memset(buffer, 0x00, 49);
 
 	if (received == START_BYTE)
 	{
@@ -370,8 +377,11 @@ void OnEvent_ON_UART2_RECEIVE()
 	{
 		unsigned long newChkSum = CRC32_Tab(&received, 1, -1);
 
-		sprintl(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%08x%02x\r",
-			newChkSum,
+		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r",
+			(unsigned int)((newChkSum >> 8 * 3) & 0xFF),
+			(unsigned int)((newChkSum >> 8 * 2) & 0xFF),
+			(unsigned int)((newChkSum >> 8 * 1) & 0xFF),
+			(unsigned int)(newChkSum & 0xFF),
 			(unsigned int)received);
 	}    
 

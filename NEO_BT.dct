@@ -491,6 +491,7 @@ btfactoryreset
 btreboot
 button
 byte2double
+bytecnttoread
 bytetohex
 bytetostr
 c
@@ -777,6 +778,7 @@ cf_write_sector
 cfgs
 cfgs_bit
 character8x7
+checksum
 chs0
 chs0_bit
 chs1
@@ -915,7 +917,6 @@ ctpls
 ctpls_bit
 cttrig
 cttrig_bit
-currenteventqueue
 cvref
 cvref_bit
 d
@@ -1603,6 +1604,8 @@ mmc_read_csd
 mmc_read_sector
 mmc_write_sector
 modf
+msgtorelay
+msgtorelayitr
 msk0
 msk0_bit
 msk0_ssp1msk_bit
@@ -1995,6 +1998,7 @@ pwm5_start
 pwm5_stop
 pwmcon
 queueevent
+queueeventfromuart
 r
 r_bit
 r_not_w
@@ -2147,7 +2151,7 @@ re3
 re3_bit
 readbuffer1
 readbuffer2
-relaytocharger
+readingchecksum
 res032
 ri
 ri_bit
@@ -3517,6 +3521,7 @@ uart2bufferwriteitr
 uart2md
 uart2md_bit
 uldiv
+validatechecksum
 vdelay_advanced_ms
 vdelay_ms
 vdirmag
@@ -3581,7 +3586,9 @@ wrerr_bit
 wrestartinterval
 wrestartinterval
 writebuffer1
+writebuffer1fromuart
 writebuffer2
+writebuffer2fromuart
 wue
 wue_baud1con_bit
 wue_bit
