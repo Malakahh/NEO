@@ -11,13 +11,18 @@
 
 #define ChargerWriteByte UART2_Write
 
+typedef struct {
+	char dat;
+	char fromCharger;
+} Response;
+
 char UART1Buffer[UART1_BUFFER_SIZE];
 char *UART1BufferWriteItr = UART1Buffer;
 char *UART1BufferReadItr = UART1Buffer;
 
-char UART2Buffer[UART2_BUFFER_SIZE];
-char *UART2BufferWriteItr = UART2Buffer;
-char *UART2BufferReadItr = UART2Buffer;
+Response UART2Buffer[UART2_BUFFER_SIZE];
+Response *UART2BufferWriteItr = UART2Buffer;
+Response *UART2BufferReadItr = UART2Buffer;
 
 int time = 0;
 char connectionEstablished = 0;
@@ -139,7 +144,9 @@ void WriteBuffer1FromUART()
 
 void WriteBuffer2(char c)
 {
-	*UART2BufferWriteItr++ = c;
+	UART2BufferWriteItr->dat = c;
+	UART2BufferWriteItr->fromCharger = 0;
+	UART2BufferWriteItr++;
 
     QueueEvent(ON_UART2_RECEIVE);
 
@@ -152,7 +159,9 @@ void WriteBuffer2FromUART()
 {
     if (UART2_Data_Ready() == 1)
     {
-        *UART2BufferWriteItr++ = UART2_Read();
+        UART2BufferWriteItr->dat = UART2_Read();
+        UART2BufferWriteItr->fromCharger = 1;
+		UART2BufferWriteItr++;
 
 	    QueueEventFromUART(ON_UART2_RECEIVE);
 
@@ -174,9 +183,10 @@ char ReadBuffer1()
     return ret;
 }
 
-char ReadBuffer2()
+Response* ReadBuffer2()
 {
-    char ret = *UART2BufferReadItr++;
+    Response* ret = UART2BufferReadItr;
+    UART2BufferReadItr++;
     
     if (UART2BufferReadItr >= UART2Buffer + UART2_BUFFER_SIZE)
     {
@@ -365,27 +375,27 @@ void OnEvent_ON_UART1_RECEIVE()
 
 void OnEvent_ON_UART2_RECEIVE()
 {
-	char received = ReadBuffer2();
+	Response* received = ReadBuffer2();
     char buffer[49];
 	memset(buffer, 0x00, 49);
 
-	if (received == START_BYTE)
+	if (received->fromCharger == 0 && received->dat == START_BYTE)
 	{
-		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)received);
+		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)(received->dat));
 	}
-	else
+	else if (received->fromCharger == 1)
 	{
-		unsigned long newChkSum = CRC32_Tab(&received, 1, -1);
+		unsigned long newChkSum = CRC32_Tab(&(received->dat), 1, -1);
 
 		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r",
 			(unsigned int)((newChkSum >> 8 * 3) & 0xFF),
 			(unsigned int)((newChkSum >> 8 * 2) & 0xFF),
 			(unsigned int)((newChkSum >> 8 * 1) & 0xFF),
 			(unsigned int)(newChkSum & 0xFF),
-			(unsigned int)received);
+			(unsigned int)(received->dat));
 	}    
 
-    BTSendCommand(buffer);
+	BTSendCommand(buffer);
 
     //Delay to allow for bluetooth notification to take place. Note that this is half the delay of UART1, due to possibly having to send two packets here.
     //Delay_ms(50);
