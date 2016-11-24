@@ -294,6 +294,8 @@ void OnEvent_ON_UART1_RECEIVE()
 	char received = ReadBuffer1();
 	char parsedHex = ParseHex();
 
+	TerminalWrite(received);
+
     if (byteCntToRead == 0 && parsedHex == START_BYTE) //New msg received
     {
     	// TerminalWrite(parsedHex);

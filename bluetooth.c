@@ -33,7 +33,7 @@ void StartDirectedAdvertisement()
 {
 	if (directedAdvertisement == 0)
 	{
-		BTSendCommand("sr,20060000\r"); // no pin code & autoadvertise
+		BTSendCommand("sr,20064000\r"); // no pin code & autoadvertise & iOS mode
 		BTReboot();
 	
 		directedAdvertisement = 1;
@@ -44,7 +44,7 @@ void StartUndirectedAdvertisement()
 {
 	if (directedAdvertisement == 1)
 	{
-		BTSendCommand("sr,24060000\r"); //No_Direct_Advertisement & no pin code & autoadvertise
+		BTSendCommand("sr,24064000\r"); //No_Direct_Advertisement & no pin code & autoadvertise & iOS mode
 		BTReboot();
 
 		directedAdvertisement = 0;
