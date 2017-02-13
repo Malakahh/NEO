@@ -24,7 +24,6 @@ Response UART2Buffer[UART2_BUFFER_SIZE];
 Response *UART2BufferWriteItr = UART2Buffer;
 Response *UART2BufferReadItr = UART2Buffer;
 
-int time = 0;
 char connectionEstablished = 0;
 char hexParserByetCnt = 0;
 
@@ -195,18 +194,6 @@ void interrupt()
     {
         WriteBuffer2FromUART();
     }
-
-    if (connectionEstablished == 0 && INTCON.TMR0IF == 1)
-    {
-        time++;
-        INTCON.TMR0IF = 0;
-        LATB.RB4 = !LATB.RB4;
-
-        if (time >= UNDIRECTED_ADVERTISEMENT_TIME)
-        {
-            QueueEventFromUART(ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED);
-        }
-    } 
 }
 
 char FindInBuffer(char *msg, char msgLength, char searchLength)
@@ -352,7 +339,6 @@ void OnEvent_ON_UART1_RECEIVE()
     {
         if (connectionEstablished == 0 && FindInBuffer("Conn", 4, 15))
         {
-            T0CON.TMR0ON = 0;
             connectionEstablished = 1;
         }
         else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
@@ -436,9 +422,6 @@ void main() {
 
     //Synchronie with charger to prevent corruption on power on
     ChargerWriteByte(0x3F);
-
-    //Start timer
-    T0CON.TMR0ON = 1;
 
     while (1)
     {

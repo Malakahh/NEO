@@ -29,11 +29,6 @@ char DequeueEvent()
 		events[ON_UART1_RECEIVE]--;
 		return ON_UART1_RECEIVE;
 	}
-	else if (events[ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED] > 0)
-	{
-		events[ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED]--;
-		return ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED;
-	}
 	else
 	{
 		return NO_EVENT;

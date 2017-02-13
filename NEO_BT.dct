@@ -3184,7 +3184,6 @@ tft_write_text
 tft_write_text_return_pos
 tgen
 tgen_bit
-time
 time_datetoepoch
 time_epochtodate
 time_jd1970
