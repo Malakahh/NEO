@@ -103,18 +103,6 @@ void InitInterrupts()
     //UART2
     RC2IE_bit = 1;  // turn ON interrupt on UART2 receive
     RC2IF_bit = 0;  // Clear interrupt flag
-
-    //Interrupt timer, 1Hz
-    INTCON.TMR0IE = 1;      // Enable timer0
-    T0CON.T08BIT = 0;       // Timer is now 16bit
-    T0CON.T0CS = 0;         // Internal clock
-    T0CON.PSA = 0;          
-    T0CON.T0PS2 = 1;
-    T0CON.T0PS1 = 0;
-    T0CON.T0PS0 = 0;
-    TMR0H = 0xB;
-    TMR0L = 0xDC;
-    T0CON.TMR0ON = 0;       // Clear interrupt flag
 }
 
 void WriteBuffer1(char c)
@@ -370,8 +358,8 @@ void OnEvent_ON_UART1_RECEIVE()
         else if (connectionEstablished == 1 && FindInBuffer("End", 3, 10))
         {
             connectionEstablished = 0;
-            StartDirectedAdvertisement();
-            //StartUndirectedAdvertisement();
+            //StartDirectedAdvertisement();
+            StartUndirectedAdvertisement();
         }
     }
 }
@@ -404,14 +392,6 @@ void OnEvent_ON_UART2_RECEIVE()
     //Delay_ms(50);
 }
 
-void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
-{
-        T0CON.TMR0ON = 0;
-
-    StartDirectedAdvertisement();
-    //StartUndirectedAdvertisement();
-}
-
 void EventHandler(char event)
 {
     if (event == ON_UART1_RECEIVE)
@@ -421,10 +401,6 @@ void EventHandler(char event)
     else if (event == ON_UART2_RECEIVE)
     {
             OnEvent_ON_UART2_RECEIVE();
-    }
-    else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
-    {
-        OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED();
     }
 }
 

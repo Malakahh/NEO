@@ -1698,7 +1698,6 @@ oerr2
 oerr2_bit
 onevent_on_uart1_receive
 onevent_on_uart2_receive
-onevent_on_undirected_advertisement_time_passed
 osccon
 osccon2
 oscfie
