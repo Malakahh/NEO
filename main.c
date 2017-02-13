@@ -12,8 +12,8 @@
 #define ChargerWriteByte UART2_Write
 
 typedef struct {
-	char dat;
-	char fromCharger;
+        char dat;
+        char fromCharger;
 } Response;
 
 char UART1Buffer[UART1_BUFFER_SIZE];
@@ -63,31 +63,31 @@ void TerminalWriteText(char *msg)
 
 void InitPorts()
 {
-	#ifdef DEBUG
-	    LATB = 0x00;
-	    LATC = 0x00;
-	    LATE = 0x00;
+        #ifdef DEBUG
+            LATB = 0x00;
+            LATC = 0x00;
+            LATE = 0x00;
 
-		ANSELC = 0;
-	    ANSELB = 0;
-	    ANSELD = 0;
+                ANSELC = 0;
+            ANSELB = 0;
+            ANSELD = 0;
 
-	    TRISB = 0;
-	    TRISC = 0x08;
-	    TRISE = 0;
-	    
-	    LATB.RB0 = 1;
-	#else
-	    LATB = 0x00;
-	    LATC = 0x00;
+            TRISB = 0;
+            TRISC = 0x08;
+            TRISE = 0;
+            
+            LATB.RB0 = 1;
+        #else
+            LATB = 0x00;
+            LATC = 0x00;
 
-		ANSELC = 0;
-	    ANSELB = 0;
+                ANSELC = 0;
+            ANSELB = 0;
 
-	    TRISB = 0;
-	    TRISC = 0x08;
+            TRISB = 0;
+            TRISC = 0x08;
 
-	    LATB.RB1 = 1;
+            LATB.RB1 = 1;
     #endif
 }
 
@@ -119,7 +119,7 @@ void InitInterrupts()
 
 void WriteBuffer1(char c)
 {
-	*UART1BufferWriteItr++ = c;
+        *UART1BufferWriteItr++ = c;
 
     QueueEvent(ON_UART1_RECEIVE);
 
@@ -134,19 +134,19 @@ void WriteBuffer1FromUART()
     {
         *UART1BufferWriteItr++ = UART1_Read();
 
-	    QueueEventFromUART(ON_UART1_RECEIVE);
+            QueueEventFromUART(ON_UART1_RECEIVE);
 
-	    //Bounds
-	    if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
-	        UART1BufferWriteItr = UART1Buffer;
+            //Bounds
+            if (UART1BufferWriteItr >= UART1Buffer + UART1_BUFFER_SIZE)
+                UART1BufferWriteItr = UART1Buffer;
     }
 }
 
 void WriteBuffer2(char c)
 {
-	UART2BufferWriteItr->dat = c;
-	UART2BufferWriteItr->fromCharger = 0;
-	UART2BufferWriteItr++;
+        UART2BufferWriteItr->dat = c;
+        UART2BufferWriteItr->fromCharger = 0;
+        UART2BufferWriteItr++;
 
     QueueEvent(ON_UART2_RECEIVE);
 
@@ -161,13 +161,13 @@ void WriteBuffer2FromUART()
     {
         UART2BufferWriteItr->dat = UART2_Read();
         UART2BufferWriteItr->fromCharger = 1;
-		UART2BufferWriteItr++;
+                UART2BufferWriteItr++;
 
-	    QueueEventFromUART(ON_UART2_RECEIVE);
+            QueueEventFromUART(ON_UART2_RECEIVE);
 
-	    //Bounds
-	    if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
-	        UART2BufferWriteItr = UART2Buffer;
+            //Bounds
+            if (UART2BufferWriteItr >= UART2Buffer + UART2_BUFFER_SIZE)
+                UART2BufferWriteItr = UART2Buffer;
     }
 }
 
@@ -271,55 +271,55 @@ char ParseHex()
 
 char ValidateChecksum()
 {
-	unsigned long newChkSum = CRC32_Tab(msgToRelay, byteCntToRead, -1);
+        unsigned long newChkSum = CRC32_Tab(msgToRelay, byteCntToRead, -1);
 
-	unsigned long control = (unsigned long)checksum[3];
-	control = control | (unsigned long)checksum[0] << 8 * 3;
-	control = control | (unsigned long)checksum[1] << 8 * 2;
-	control = control | (unsigned long)checksum[2] << 8 * 1;
+        unsigned long control = (unsigned long)checksum[3];
+        control = control | (unsigned long)checksum[0] << 8 * 3;
+        control = control | (unsigned long)checksum[1] << 8 * 2;
+        control = control | (unsigned long)checksum[2] << 8 * 1;
 
-	if (newChkSum == control)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+        if (newChkSum == control)
+        {
+                return 1;
+        }
+        else
+        {
+                return 0;
+        }
 }
 
 void OnEvent_ON_UART1_RECEIVE()
 {
-	int i;
-	char received = ReadBuffer1();
-	char parsedHex = ParseHex();
+        int i;
+        char received = ReadBuffer1();
+        char parsedHex = ParseHex();
 
-	TerminalWrite(received);
+        TerminalWrite(received);
 
     if (byteCntToRead == 0 && parsedHex == START_BYTE) //New msg received
     {
-    	// TerminalWrite(parsedHex);
-    	// TerminalWrite('\n');
+            // TerminalWrite(parsedHex);
+            // TerminalWrite('\n');
 
         byteCntToRead = -1;
         hexParserByetCnt = 0;
     }
     else if (byteCntToRead == -1) //Read byteCount
     {
-    	hexParserByetCnt++;
+            hexParserByetCnt++;
 
-    	if (hexParserByetCnt == 2)
+            if (hexParserByetCnt == 2)
         {
-	    	byteCntToRead = parsedHex;
+                    byteCntToRead = parsedHex;
 
-	    	//Reset stuff
-        	hexParserByetCnt = 0;
-	    	readingChecksum = 0;
-	    	msgToRelayItr = msgToRelay;
+                    //Reset stuff
+                hexParserByetCnt = 0;
+                    readingChecksum = 0;
+                    msgToRelayItr = msgToRelay;
 
-	    	// TerminalWrite(byteCntToRead);
-	    	// TerminalWrite('\n');
-	    }
+                    // TerminalWrite(byteCntToRead);
+                    // TerminalWrite('\n');
+            }
     }
     else if (msgToRelayItr < msgToRelay + byteCntToRead && byteCntToRead != 0) //Read msg
     {
@@ -327,36 +327,36 @@ void OnEvent_ON_UART1_RECEIVE()
         
         if (hexParserByetCnt == 2)
         {
-        	if (readingChecksum < CHECKSUM_LENGTH_BYTES)
-        	{
-        		//Reading checksum
-        		checksum[readingChecksum++] = parsedHex;
+                if (readingChecksum < CHECKSUM_LENGTH_BYTES)
+                {
+                        //Reading checksum
+                        checksum[readingChecksum++] = parsedHex;
 
-        		//TerminalWrite(parsedHex);
-        	}
-        	else
-        	{
-        		//Reading msg
-        		*msgToRelayItr++ = parsedHex;
+                        //TerminalWrite(parsedHex);
+                }
+                else
+                {
+                        //Reading msg
+                        *msgToRelayItr++ = parsedHex;
 
-        		//Final byte of msg read
-        		if (msgToRelayItr == msgToRelay + byteCntToRead)
-        		{
-        			if (ValidateChecksum() == 1)
-        			{
-        				WriteBuffer2(START_BYTE);
+                        //Final byte of msg read
+                        if (msgToRelayItr == msgToRelay + byteCntToRead)
+                        {
+                                if (ValidateChecksum() == 1)
+                                {
+                                        WriteBuffer2(START_BYTE);
 
-        				for (i = 0; msgToRelay + i < msgToRelayItr; i++)
-	        			{
-	        				ChargerWriteByte(msgToRelay[i]);
-	            			Delay_ms(15); //Per specification of the charger software
-	        			}
-        			}
+                                        for (i = 0; msgToRelay + i < msgToRelayItr; i++)
+                                        {
+                                                ChargerWriteByte(msgToRelay[i]);
+                                            Delay_ms(15); //Per specification of the charger software
+                                        }
+                                }
 
-        			byteCntToRead = 0;
-        		}
-        	}
-			
+                                byteCntToRead = 0;
+                        }
+                }
+                        
             hexParserByetCnt = 0;
         }
     }
@@ -371,33 +371,34 @@ void OnEvent_ON_UART1_RECEIVE()
         {
             connectionEstablished = 0;
             StartDirectedAdvertisement();
+            //StartUndirectedAdvertisement();
         }
     }
 }
 
 void OnEvent_ON_UART2_RECEIVE()
 {
-	Response* received = ReadBuffer2();
+        Response* received = ReadBuffer2();
     char buffer[49];
-	memset(buffer, 0x00, 49);
+        memset(buffer, 0x00, 49);
 
-	if (received->fromCharger == 0 && received->dat == START_BYTE)
-	{
-		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)(received->dat));
-	}
-	else if (received->fromCharger == 1)
-	{
-		unsigned long newChkSum = CRC32_Tab(&(received->dat), 1, -1);
+        if (received->fromCharger == 0 && received->dat == START_BYTE)
+        {
+                sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)(received->dat));
+        }
+        else if (received->fromCharger == 1)
+        {
+                unsigned long newChkSum = CRC32_Tab(&(received->dat), 1, -1);
 
-		sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r",
-			(unsigned int)((newChkSum >> 8 * 3) & 0xFF),
-			(unsigned int)((newChkSum >> 8 * 2) & 0xFF),
-			(unsigned int)((newChkSum >> 8 * 1) & 0xFF),
-			(unsigned int)(newChkSum & 0xFF),
-			(unsigned int)(received->dat));
-	}    
+                sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x%02x%02x%02x%02x\r",
+                        (unsigned int)((newChkSum >> 8 * 3) & 0xFF),
+                        (unsigned int)((newChkSum >> 8 * 2) & 0xFF),
+                        (unsigned int)((newChkSum >> 8 * 1) & 0xFF),
+                        (unsigned int)(newChkSum & 0xFF),
+                        (unsigned int)(received->dat));
+        }    
 
-	BTSendCommand(buffer);
+        BTSendCommand(buffer);
 
     //Delay to allow for bluetooth notification to take place. Note that this is half the delay of UART1, due to possibly having to send two packets here.
     //Delay_ms(50);
@@ -405,9 +406,10 @@ void OnEvent_ON_UART2_RECEIVE()
 
 void OnEvent_ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED()
 {
-	T0CON.TMR0ON = 0;
+        T0CON.TMR0ON = 0;
 
     StartDirectedAdvertisement();
+    //StartUndirectedAdvertisement();
 }
 
 void EventHandler(char event)
@@ -418,7 +420,7 @@ void EventHandler(char event)
     }
     else if (event == ON_UART2_RECEIVE)
     {
-    	OnEvent_ON_UART2_RECEIVE();
+            OnEvent_ON_UART2_RECEIVE();
     }
     else if (event == ON_UNDIRECTED_ADVERTISEMENT_TIME_PASSED)
     {
@@ -442,8 +444,8 @@ void main() {
     char event;
 
     #ifndef DEBUG
-    	//Setup internal oscillator
-    	OSCCON = 0x62;
+            //Setup internal oscillator
+            OSCCON = 0x62;
     #endif
 
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);

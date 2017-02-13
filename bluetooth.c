@@ -34,6 +34,7 @@ void StartDirectedAdvertisement()
         if (directedAdvertisement == 0)
         {
                 BTSendCommand("sr,20064000\r"); // no pin code & autoadvertise & iOS mode
+                //BTSendCommand("sr,20060000\r");
                 BTReboot();
         
                 directedAdvertisement = 1;
@@ -45,6 +46,7 @@ void StartUndirectedAdvertisement()
         if (directedAdvertisement == 1)
         {
                 BTSendCommand("sr,24064000\r"); //No_Direct_Advertisement & no pin code & autoadvertise & iOS mode
+                //BTSendCommand("sr,24060000\r");
                 BTReboot();
 
                 directedAdvertisement = 0;
@@ -102,6 +104,9 @@ void InitBT()
         //BTFactoryReset();
 
         BTSendCommand("s-,NEO\r");
+        
+        //Set connection parameters for iOS devices
+        BTSendCommand("st,0014,0004,0258\r"); //Interval >= 20ms, Latency <= 4s, Timeout <= 6s
 
         SetupPrivateServices();
 
