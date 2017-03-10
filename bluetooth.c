@@ -68,6 +68,9 @@ void SetupPrivateServices()
         //current private service. The property of this cahracteristic is 0x18,
         //(writable and could notify) and has a maximum data size of 0x14 (20 bytes).
         BTSendCommand("PC,e25328b05a5411e68b7786f30ca893d3,18,14\r");
+
+        //Add another private service, as a workaround for Qt bug
+        //BTSendCommand("PS, fffffffffffffffffffffffffffffff\r");
 }        
 
 void InitBT()
@@ -134,19 +137,11 @@ void BTCmdMode(char enter)
 {
         if (enter)
         {
-                #ifdef DEBUG
-                        LATE.RE1 = 1;
-                #else
-                        LATC.RC1 = 1;
-                #endif
+			LATC.RC1 = 1;
         }
         else
         {
-                #ifdef DEBUG
-                        LATE.RE1 = 0;
-                #else
-                        LATC.RC1 = 0;
-                #endif
+            LATC.RC1 = 0;
         }
 
         Delay_ms(150);

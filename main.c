@@ -1,3 +1,10 @@
+/*
+
+	Written for PIC18F25K22
+	with Internal RC Oscillator
+
+*/
+
 #include "globals.h"
 #include "bluetooth.h"
 #include "events.h"
@@ -33,6 +40,7 @@ char checksum[CHECKSUM_LENGTH_BYTES];
 char msgToRelay[DATA_MAX_LENGTH];
 char *msgToRelayItr = msgToRelay;
 
+//FOR DEBUGGING
 void TerminalWrite(char msg)
 {
     RC1IE_bit = 0;
@@ -44,6 +52,7 @@ void TerminalWrite(char msg)
     RC2IE_bit = 1;
 }
 
+//FOR DEBUGGING
 void TerminalWriteText(char *msg)
 {
     int i;
@@ -62,32 +71,8 @@ void TerminalWriteText(char *msg)
 
 void InitPorts()
 {
-        #ifdef DEBUG
-            LATB = 0x00;
-            LATC = 0x00;
-            LATE = 0x00;
-
-                ANSELC = 0;
-            ANSELB = 0;
-            ANSELD = 0;
-
-            TRISB = 0;
-            TRISC = 0x08;
-            TRISE = 0;
-            
-            LATB.RB0 = 1;
-        #else
-            LATB = 0x00;
-            LATC = 0x00;
-
-                ANSELC = 0;
-            ANSELB = 0;
-
-            TRISB = 0;
-            TRISC = 0x08;
-
-            LATB.RB1 = 1;
-    #endif
+    ANSELC = 0;
+    ANSELB = 0;
 }
 
 void InitInterrupts()
@@ -269,7 +254,7 @@ void OnEvent_ON_UART1_RECEIVE()
         char received = ReadBuffer1();
         char parsedHex = ParseHex();
 
-        TerminalWrite(received);
+        //TerminalWrite(received);
 
     if (byteCntToRead == 0 && parsedHex == START_BYTE) //New msg received
     {
@@ -356,6 +341,8 @@ void OnEvent_ON_UART2_RECEIVE()
     char buffer[49];
         memset(buffer, 0x00, 49);
 
+
+
         if (received->fromCharger == 0 && received->dat == START_BYTE)
         {
                 sprinti(buffer, "suw,1d4b745a5a5411e68b7786f30ca893d3,%02x\r", (unsigned int)(received->dat));
@@ -371,6 +358,8 @@ void OnEvent_ON_UART2_RECEIVE()
                         (unsigned int)(newChkSum & 0xFF),
                         (unsigned int)(received->dat));
         }    
+
+        TerminalWriteText(buffer);
 
         BTSendCommand(buffer);
 
@@ -405,10 +394,8 @@ void InitTerminal()
 void main() {
     char event;
 
-    #ifndef DEBUG
-            //Setup internal oscillator
-            OSCCON = 0x62;
-    #endif
+    //Setup internal oscillator
+    OSCCON = 0x62;
 
     memset(UART1Buffer, 0xFF, UART1_BUFFER_SIZE);
     memset(UART2Buffer, 0xFF, UART2_BUFFER_SIZE);
