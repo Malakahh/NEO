@@ -109,7 +109,9 @@ void InitBT()
         BTSendCommand("s-,NEO\r");
         
         //Set connection parameters for iOS devices
-        BTSendCommand("st,0014,0004,0258\r"); //Interval >= 20ms, Latency <= 4s, Timeout <= 6s
+        //BTSendCommand("st,0014,0004,0258\r"); 
+        BTSendCommand("st,0010,0004,0258\r"); //Interval >= 20ms, Latency <= 4s, Timeout <= 6s
+        //BTSendCommand("st,0064,0002,0064\r");
 
         SetupPrivateServices();
 

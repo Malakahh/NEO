@@ -71,8 +71,11 @@ void TerminalWriteText(char *msg)
 
 void InitPorts()
 {
-    ANSELC = 0;
     ANSELB = 0;
+    ANSELC = 0;
+
+    //TRISB = 0x80;
+    TRISC = 0x20;
 }
 
 void InitInterrupts()
@@ -359,7 +362,7 @@ void OnEvent_ON_UART2_RECEIVE()
                         (unsigned int)(received->dat));
         }    
 
-        TerminalWriteText(buffer);
+        //TerminalWriteText(buffer);
 
         BTSendCommand(buffer);
 
